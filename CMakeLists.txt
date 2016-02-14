@@ -121,7 +121,7 @@ endforeach(ITEM)
 
 set(OXYGINE_INCLUDE_DIRS 
 	${OXYGINE_SRC}
-	${THIRD_PARTY}/pthreads/include/
+#	${THIRD_PARTY}/pthreads/include/
 	${THIRD_PARTY}/zlib)
 
 
@@ -157,7 +157,7 @@ endif(OX_USE_SDL2)
 
 if (WIN32)
 	set(CORE_LIBS ${CORE_LIBS}
-		pthreadVCE2
+		pthread
 		libcurl_imp
 		ws2_32)
 elseif(EMSCRIPTEN)	
