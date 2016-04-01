@@ -25,8 +25,7 @@
 #include "TestTweenShine.h"
 #include "TestTouches.h"
 #include "TestColorFont.h"
-#include "TestTweenAlphaFade.h"
-#include "TestEdges.h"
+#include "TestTweenPostProcessing.h"
 
 #ifdef __S3E__
 #include "s3eKeyboard.h"
@@ -35,8 +34,8 @@
 using namespace oxygine;
 
 
-//it is our resources
-//in real project you would have more than one Resources declarations.
+//This contains our resources
+//In a real project you would have more than one Resources declaration.
 //It is important on mobile devices with limited memory and you would load/unload them
 Resources resources;
 
@@ -81,7 +80,7 @@ public:
         addButton("inputtext", "Input Text");
         addButton("openbrowser", "Open Browser");
         addButton("http", "Http requests");
-        addButton("tweenfade", "Tween Alpha Fade");
+        addButton("tweenpp", "Post Processing Tweens");
 
         _color = Color::Red;
         _txtColor = Color::White;
@@ -106,169 +105,55 @@ public:
 
     void clicked(string id)
     {
-        if (id == "perf")
-        {
-            showTest(new PerfTest);
-        }
-        if (id == "tweens")
-        {
-            showTest(new TweensTest);
-        }
-        if (id == "drag")
-        {
-            showTest(new DragTest);
-        }
-        if (id == "drag2")
-        {
-            showTest(new Drag2Test);
-        }
-        if (id == "hittest")
-        {
-            showTest(new TestAlphaHitTest);
-        }
-        if (id == "manage_res")
-        {
-            showTest(new ManageResTest);
-        }
-        if (id == "r2t")
-        {
-            showTest(new TestRender2Texture);
-        }
-        if (id == "text")
-        {
-            showTest(new TestText);
-        }
-
-        if (id == "progress_bar")
-        {
-            showTest(new TestProgressBar);
-        }
-
-        if (id == "texture_format")
-        {
-            showTest(new TestTextureFormat);
-        }
-
-        if (id == "sliding")
-        {
-            showTest(new TestSliding);
-        }
-
-        if (id == "t2p")
-        {
-            showTest(new TestTexel2Pixel);
-        }
-        if (id == "edges")
-        {
-            showTest(new TestEdges);
-        }
-
-        if (id == "touches")
-        {
-            showTest(new TestTouches);
-        }
-
-        if (id == "box9sprite")
-        {
-            showTest(new TestBox9Sprite);
-        }
-
-        if (id == "cliprect")
-        {
-            showTest(new TestClipRect);
-        }
-
-        if (id == "usershader")
-        {
-            showTest(new TestUserShader);
-        }
-
-        if (id == "usershader2")
-        {
-            showTest(new TestUserShader2);
-        }
-
-        if (id == "mask")
-        {
-            showTest(new TestMask);
-        }
-
-        if (id == "polygon")
-        {
-            showTest(new TestPolygon);
-        }
-
-        if (id == "inputtext")
-        {
-            showTest(new TestInputText);
-        }
-
+        if (id == "perf") showTest(new PerfTest);
+        if (id == "tweens") showTest(new TweensTest);
+        if (id == "drag") showTest(new DragTest);
+        if (id == "drag2") showTest(new Drag2Test);
+        if (id == "hittest") showTest(new TestAlphaHitTest);
+        if (id == "manage_res") showTest(new ManageResTest);
+        if (id == "r2t") showTest(new TestRender2Texture);
+        if (id == "text") showTest(new TestText);
+        if (id == "progress_bar") showTest(new TestProgressBar);
+        if (id == "texture_format") showTest(new TestTextureFormat);
+        if (id == "sliding") showTest(new TestSliding);
+        if (id == "t2p") showTest(new TestTexel2Pixel);
+        if (id == "touches") showTest(new TestTouches);
+        if (id == "box9sprite") showTest(new TestBox9Sprite);
+        if (id == "cliprect") showTest(new TestClipRect);
+        if (id == "usershader") showTest(new TestUserShader);
+        if (id == "usershader2") showTest(new TestUserShader2);
+        if (id == "mask") showTest(new TestMask);
+        if (id == "polygon") showTest(new TestPolygon);
+        if (id == "inputtext") showTest(new TestInputText);
+        if (id == "http") showTest(new TestHttp);
+        if (id == "counter") showTest(new TestCounter);
+        if (id == "tweentext") showTest(new TestTweenText);
+        if (id == "tweenshine") showTest(new TestTweenShine);
+        if (id == "multicolorfont") showTest(new TestColorFont);
+        if (id == "tweenpp") showTest(new TestTweenPostProcessing);
         if (id == "openbrowser")
         {
             core::execute("http://oxygine.org/");
             setVisible(true);
-        }
-
-        if (id == "http")
-        {
-            showTest(new TestHttp);
-        }
-
-        if (id == "counter")
-        {
-            showTest(new TestCounter);
-        }
-
-        if (id == "tweentext")
-        {
-            showTest(new TestTweenText);
-        }
-
-        if (id == "tweenshine")
-        {
-            showTest(new TestTweenShine);
-        }
-
-        if (id == "multicolorfont")
-        {
-            showTest(new TestColorFont);
-        }
-
-        if (id == "tweenfade")
-        {
-            showTest(new TestTweenAlphaFade);
         }
     }
 };
 
 void example_preinit()
 {
-    /**
-    There are 2 modes of loading and blending/rendering sprites: normal and premultiplied alpha.
-    You should set it before loading any assets.
-    Premultiplied mode is more advanced and faster than normal. In this mode RGB pixels of textures premultiplying to alpha when textures are loading and using blend_premultiply_alpha as default Sprites blend option.
-    Default value is premultiplied = true
-    http://blog.rarepebble.com/111/premultiplied-alpha-in-opengl/
-
-    I set it to false to simplify shaders for UserShaderDemo
-    */
-
-    //Renderer::setPremultipliedAlphaRender(false);
 }
 
 
 void example_init()
 {
-    //load xml file with resources definition
+    //Load resources in xml file
     resources.loadXML("xmls/res.xml");
-
-
     Test::init();
 
     Test::instance = new TestActor;
     getStage()->addChild(Test::instance);
 
-    //initialize http requests
+    //Initialize http requests
     HttpRequestTask::init();
 
 

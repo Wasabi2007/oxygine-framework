@@ -56,6 +56,8 @@ public:
         Rect viewport(Point(0, 0), content->getSize().cast<Point>());
         renderer.initCoordinateSystem(viewport.getWidth(), viewport.getHeight(), true);
 
+        spNativeTexture previousRT = driver->getRenderTarget();
+
         driver->setRenderTarget(texture);
         driver->setViewport(viewport);
 
@@ -72,15 +74,19 @@ public:
         renderer.end();
 #else
         //how to render actors to texture
+        Material::setCurrent(0);
+
+        spActor actor = new ManageResTest;
+        actor->setScale(0.5f);
+
         RenderState rs;
         rs.material = STDMaterial::instance;
-        Test::instance->setVisible(true);
-        Test::instance->Actor::render(rs);
-        Test::instance->setVisible(false);
-
+        actor->setAlpha(64);
+        actor->render(rs);
+        Material::setCurrent(0);
 #endif
 
         //restore to default render target
-        driver->setRenderTarget(0);
+        driver->setRenderTarget(previousRT);
     }
 };

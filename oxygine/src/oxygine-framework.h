@@ -23,7 +23,7 @@
 #include "Input.h"
 #include "InputText.h"
 #include "MemoryTexture.h"
-#include "Multithreading.h"
+#include "ThreadLoader.h"
 #include "PointerState.h"
 #include "ProgressBar.h"
 #include "RenderState.h"
@@ -33,7 +33,6 @@
 #include "Sprite.h"
 #include "MaskedSprite.h"
 #include "TextField.h"
-#include "TextActor.h"//deprecated
 #include "TextStyle.h"
 #include "Tween.h"
 #include "TweenQueue.h"
@@ -75,7 +74,6 @@
 //#include "core/gl/oxgl.h"
 //#include "core/gl/VertexDeclarationGL.h"
 //#include "core/gl/VideoDriverGL.h"
-//#include "core/gl/VideoDriverGLES11.h"
 //#include "core/gl/VideoDriverGLES20.h"
 
 //dev_tools/

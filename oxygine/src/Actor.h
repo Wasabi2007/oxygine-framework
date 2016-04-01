@@ -57,17 +57,19 @@ namespace oxygine
     class TweenOptions
     {
     public:
-        explicit TweenOptions(timeMS duration = 500) : _duration(duration), _delay(0), _ease(Tween::ease_linear), _loops(1), _twoSides(false), _detach(false) {}
+        explicit TweenOptions(timeMS duration = 500) : _duration(duration), _delay(0), _ease(Tween::ease_linear), _globalEase(Tween::ease_linear), _loops(1), _twoSides(false), _detach(false) {}
         TweenOptions& duration(timeMS duration) { _duration = duration; return *this; }
         TweenOptions& delay(timeMS delay) { _delay = delay; return *this; }
         TweenOptions& loops(int loops) { _loops = loops; return *this; }
         TweenOptions& twoSides(bool enabled = true) { _twoSides = enabled; return *this; }
         TweenOptions& ease(Tween::EASE ease) { _ease = ease; return *this; }
         TweenOptions& detach(bool detach_ = true) { _detach = detach_; return *this; }
+        TweenOptions& globalEase(Tween::EASE ease) { _globalEase = ease; return *this; }
 
         timeMS  _duration;
         timeMS  _delay;
         Tween::EASE _ease;
+        Tween::EASE _globalEase;
         int     _loops;
         bool    _twoSides;
         bool    _detach;
@@ -88,9 +90,9 @@ namespace oxygine
         /**returns last child*/
         spActor             getLastChild() const {return _children._last;}
         /**returns next sibling*/
-        spActor             getNextSibling() {return intr_list::getNextSibling();}
+        spActor             getNextSibling()const {return intr_list::_next;}
         /**returns previous sibling*/
-        spActor             getPrevSibling() {return intr_list::getPrevSibling();}
+        spActor             getPrevSibling()const {return intr_list::_prev;}
 
 
         /**search child by name recursively, could return self*/
@@ -123,6 +125,7 @@ namespace oxygine
         float               getScaleY() const {return _scale.y;}
         /**Returns rotation angle in radians*/
         float               getRotation() const {return _rotation;}
+        /**Returns rotation angle in degrees*/
         float               getRotationDegrees() const {return _rotation / MATH_PI * 180.0f;}
         int                 getPriority() const {return _zOrder;}
         bool                getVisible() const {return (_flags & flag_visible) != 0;}
@@ -142,27 +145,38 @@ namespace oxygine
         pointer_index       getPressed() const;
         /**returns touch id if actor is moused overred*/
         pointer_index       getOvered() const;
-        bool                getInputEnabled() const {return (_flags & flag_touchEnabled) != 0;}
-        bool                getInputChildrenEnabled() const {return (_flags & flag_touchChildrenEnabled) != 0;}
+        bool                getTouchEnabled() const { return (_flags & flag_touchEnabled) != 0; }
+        bool                getTouchChildrenEnabled() const { return (_flags & flag_touchChildrenEnabled) != 0; }
         bool                getChildrenRelative() const {return (_flags & flag_childrenRelative) != 0;;}
         UpdateCallback      getCallbackDoUpdate() const {return _cbDoUpdate;}
         Material*           getMaterial() { return _material; }
         //RenderCallback        getCallbackDoRender() const {return _cbDoRender;}
 
+        /**return local actor transformation*/
         const Transform&      getTransform() const;
         const Transform&      getTransformInvert() const;
 
 
-        /**Sets Anchor. Anchor is "center" of rotation/scale/position*/
+        /**computes global actor transformation*/
+        Transform           computeGlobalTransform(Actor* parent = 0) const;
+        /**computes actor Bounds rectangle. Iterates children*/
+        RectF               computeBounds(const Transform& transform = Transform::getIdentity()) const;
+
+        /**Sets Anchor. Anchor also called Pivot point. It is "center" for rotation/scale/position. Anchor could be set in Pixels or in Percents (/100).
+        Default value is (0,0) - top left corner of Actor
+        */
         void setAnchor(const Vector2& anchor);
         void setAnchor(float ax, float ay);
         void setAnchorInPixels(const Vector2& anchor);
+        void setAnchorInPixels(float x, float y);
+        void setAnchorX(float x);
+        void setAnchorY(float y);
+
         void setPosition(const Vector2& pos);
         void setPosition(float x, float y);
         void setX(float x);
         void setY(float y);
-        void setAnchorX(float x);
-        void setAnchorY(float y);
+
         /**Overwrites transformation matrix. position/scale/rotation would be ignored until you change them*/
         void setTransform(const AffineTransform& tr);
         /** set z order draw priority, from back (low value) to front (high value). Max value is 32000, Min value -32000*/
@@ -190,17 +204,12 @@ namespace oxygine
         void setClock(spClock clock);
         void setMaterial(Material* mat);
 
-        /**Show/Hide actor and children. Invisible Actor doesn't receive events.*/
+        /**Show/Hide actor and children. Invisible Actor doesn't receive Touch events.*/
         void setVisible(bool vis) {_flags &= ~flag_visible; if (vis) _flags |= flag_visible;}
-        /**Enable/Disable culling this actor outside of clip area (use it with ClipRectActor)*/
+        /**Enable/Disable culling this actor outside of clip area (use it in pair with ClipRectActor)*/
         void setCull(bool enable) {_flags &= ~flag_cull; if (enable) _flags |= flag_cull;}
-        /**Sets transparency. if alpha is 0 actor and children are completely invisible, don't rendering and don't receive events.*/
+        /**Sets transparency. if alpha is 0 actor and children are completely invisible. Invisible Actor doesn't receive Touch events.*/
         void setAlpha(unsigned char alpha);
-
-        /**Deprecated, use setTouchEnabled*/
-        void setInputEnabled(bool enabled) { setTouchEnabled(enabled); }
-        /**Deprecated, use setTouchChildrenEnabled*/
-        void setInputChildrenEnabled(bool enabled) { setTouchChildrenEnabled(enabled); }
 
         /**Enables/Disables Touch events for Actor.*/
         void setTouchEnabled(bool enabled) { _flags &= ~flag_touchEnabled; if (enabled) _flags |= flag_touchEnabled; }
@@ -238,7 +247,8 @@ namespace oxygine
         /**Dispatches an event into the event flow. The event target is the EventDispatcher object upon which the dispatchEvent() method is called.*/
         void dispatchEvent(Event* event);
 
-        virtual void updateState() {}
+        virtual void updateStateOvered() {}
+        virtual void updateStatePressed() {}
 
         spTween addTween(spTween);
         spTween addTween2(spTween, const TweenOptions& opt);
@@ -260,7 +270,7 @@ namespace oxygine
 
         void removeTween(spTween);
         void removeTweensByName(const std::string& name);
-        /**remove all tweens and call completes them if callComplete == true*/
+        /**remove all tweens and call Tween::complete to them if callComplete == true*/
         void removeTweens(bool callComplete = false);
 
         /**Updates this actor, children and all tweens.*/
@@ -314,6 +324,9 @@ namespace oxygine
         void removedFromStage();
         virtual void onAdded2Stage() {}
         virtual void onRemovedFromStage() {}
+        virtual void transformUpdated() {}
+        virtual bool getBounds(RectF&) const { return false; }
+        void calcBounds2(RectF& bounds, const Transform& transform) const;
 
 
         typedef intrusive_list<spActor> children;
@@ -383,25 +396,30 @@ namespace oxygine
         float   _rotation;
     };
 
-    Vector2 convert_global2local(spActor child, spActor parent, const Vector2& pos);//deprecated, use convert_stage2local
-    Vector2 convert_local2global(spActor child, spActor parent, const Vector2& pos);//deprecated, use convert_local2stage
-
     Vector2 convert_local2stage(spActor child, const Vector2& pos, spActor root = 0);
     Vector2 convert_local2stage(const Actor* child, const Vector2& pos, const Actor* root = 0);
     Vector2 convert_stage2local(spActor child, const Vector2& pos, spActor root = 0);
     Vector2 convert_stage2local(const Actor* child, const Vector2& pos, const Actor* root = 0);
 
     /**Deprecated*/
+    OXYGINE_DEPRECATED
     inline Vector2 convert_local2root(spActor child, const Vector2& pos, spActor root = 0) { return convert_local2stage(child, pos, root); }
     /**Deprecated*/
+    OXYGINE_DEPRECATED
     inline Vector2 convert_root2local(spActor child, const Vector2& pos, spActor root = 0) { return convert_stage2local(child, pos, root); }
 
     /*Tests 2 actors intersection and returns contact point in space of object1.*/
     bool testIntersection(spActor obj1, spActor obj2, spActor commonParent = 0, Vector2* contact = 0);
 
 
+    //deprecated, use actor::computeGlobalTransform
+    OXYGINE_DEPRECATED
     Transform getGlobalTransform(spActor child, spActor parent = 0);
+
+    //deprecated, use actor::computeGlobalTransform
+    OXYGINE_DEPRECATED
     Transform getGlobalTransform2(spActor child, Actor* parent = 0);
+
     RectF getActorTransformedDestRect(Actor* actor, const Transform& tr);
 
     void    changeParentAndSavePosition(spActor mutualParent, spActor actor, spActor newParent);

@@ -1,9 +1,29 @@
 #include "CreateResourceContext.h"
 #include "core/NativeTexture.h"
 #include "MemoryTexture.h"
+#include "core/ThreadDispatcher.h"
+#include "core/oxygine.h"
+#include "pthread.h"
 
 namespace oxygine
 {
+    static pthread_t _mainThread;
+
+
+    void LoadResourcesContext::init()
+    {
+        _mainThread = pthread_self();
+    }
+
+    LoadResourcesContext* LoadResourcesContext::get()
+    {
+        bool isMainThread = pthread_equal(_mainThread, pthread_self()) != 0;
+
+        LoadResourcesContext* mtcontext = &MTLoadingResourcesContext::instance;
+        LoadResourcesContext* scontext = &SingleThreadResourcesContext::instance;
+        return isMainThread ? scontext : mtcontext;
+    }
+
     CreateTextureTask::CreateTextureTask(): linearFilter(true), clamp2edge(true)
     {
     }
@@ -169,6 +189,48 @@ namespace oxygine
     }
 
     bool SingleThreadResourcesContext::isNeedProceed(spNativeTexture t)
+    {
+        return t->getHandle() == 0;
+    }
+
+
+    MTLoadingResourcesContext MTLoadingResourcesContext::instance;
+
+    void copyTexture(const ThreadDispatcher::message& msg)
+    {
+        const CreateTextureTask* task = (const CreateTextureTask*)msg.cbData;
+
+
+        MemoryTexture* src = task->src.get();
+        NativeTexture* dest = task->dest.get();
+
+        bool done = false;
+
+        if (isCompressedFormat(src->getFormat()))
+        {
+            dest->init(src->lock(), false);
+            done = true;
+        }
+        else
+        {
+
+            Rect textureRect(0, 0, src->getWidth(), src->getHeight());
+
+            if (dest->getHandle() == 0)
+                dest->init(textureRect.getWidth(), textureRect.getHeight(), src->getFormat());
+
+            dest->updateRegion(0, 0, src->lock());
+        }
+
+        task->ready();
+    }
+
+    void MTLoadingResourcesContext::createTexture(const CreateTextureTask& opt)
+    {
+        core::getMainThreadDispatcher().sendCallback(0, 0, copyTexture, (void*)&opt);
+    }
+
+    bool MTLoadingResourcesContext::isNeedProceed(spNativeTexture t)
     {
         return t->getHandle() == 0;
     }

@@ -16,7 +16,7 @@ public:
 
     MainActor()
     {
-        //create simple Sprite
+        //create button Sprite
         spSprite button = new Sprite();
 
         //setup it:
@@ -27,7 +27,7 @@ public:
         Vector2 pos = getStage()->getSize() / 2 - button->getSize() / 2;
         button->setPosition(pos);
 
-        //handle click to button
+        //register  click handler to button
         EventCallback cb = CLOSURE(this, &MainActor::buttonClicked);
         button->addEventListener(TouchEvent::CLICK, cb);
 
@@ -42,11 +42,9 @@ public:
 
         //attach button as child to current actor
         addChild(button);
-
         _button = button;
 
 
-        //second part
 
         //create TextField Actor
         spTextField text = new TextField();
@@ -92,10 +90,10 @@ public:
         spSprite sprite = new Sprite();
         addChild(sprite);
 
-        int duration = 500;//500 ms
+        int duration = 600;//ms
         int loops = -1;//infinity loops
 
-        //animation has 7 columns, check 'res.xml'
+        //animation has 8 columns - frames, check 'res.xml'
         ResAnim* animation = gameResources.getResAnim("anim");
 
         //add animation tween to sprite
@@ -112,7 +110,7 @@ public:
         spTweenQueue tweenQueue = new TweenQueue();
         tweenQueue->setDelay(1500);
         //first, move sprite to dest position
-        tweenQueue->add(Sprite::TweenPosition(destPos), 1500, 1);
+        tweenQueue->add(Sprite::TweenPosition(destPos), 2500, 1);
         //then fade it out smoothly
         tweenQueue->add(Sprite::TweenAlpha(0), 500, 1);
 
@@ -125,10 +123,12 @@ public:
 };
 //declare spMainActor as intrusive_ptr holder of MainActor
 typedef oxygine::intrusive_ptr<MainActor> spMainActor;
+//you could use DECLARE_SMART preprocessor definition it does the same:
+//DECLARE_SMART(MainActor, spMainActor)
 
 void example_preinit() {}
 
-//called from entry_point.cpp
+//called from main.cpp
 void example_init()
 {
     //load xml file with resources definition
@@ -136,7 +136,7 @@ void example_init()
 
 
     //lets create our client code simple actor
-    //spMainActor was defined above as smart intrusive pointer (read more: http://www.boost.org/doc/libs/1_57_0/libs/smart_ptr/intrusive_ptr.html)
+    //spMainActor was defined above as smart intrusive pointer (read more: http://www.boost.org/doc/libs/1_60_0/libs/smart_ptr/intrusive_ptr.html)
     spMainActor actor = new MainActor;
 
     //and add it to Stage as child
@@ -144,12 +144,12 @@ void example_init()
 }
 
 
-//called each frame from entry_point.cpp
+//called each frame from main.cpp
 void example_update()
 {
 }
 
-//called each frame from entry_point.cpp
+//called each frame from main.cpp
 void example_destroy()
 {
     //free previously loaded resources

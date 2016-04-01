@@ -1,6 +1,7 @@
 #pragma once
 #include "test.h"
 #include "Draggable.h"
+#include "TweenOutline.h"
 class DraggableSprite: public Sprite
 {
 public:
@@ -39,7 +40,7 @@ public:
             float angle = scalar::randFloat(0, (float)MATH_PI * 2);
             sprite->setRotation(angle);
             sprite->addTween(Actor::TweenRotation(MATH_PI * 2 + angle), 30000, -1);
-            sprite->setScale(scalar::randFloat(1.0f, 1.5f));
+            sprite->setScale(scalar::randFloat(0.8f, 1.2f));
             sprite->setAnchor(0.5f, 0.5f);
 
             sprite->addEventListener(TouchEvent::TOUCH_DOWN, CLOSURE(this, &DragTest::onMouseDown));
@@ -51,7 +52,10 @@ public:
         contacts = new Actor;
         contacts->attachTo(content);
         contacts->setPriority(10000);
-        contacts->setInputChildrenEnabled(false);
+        contacts->setTouchChildrenEnabled(false);
+        contacts->setVisible(false);
+
+        content->addTween(TweenOutline(Color::GreenYellow), TweenOptions(5000).loops(-1).twoSides());
     }
 
     void doUpdate(const UpdateState& us)
@@ -74,7 +78,7 @@ public:
                     c->setAnchor(0.5f, 0.5f);
                     c->setResAnim(resources.getResAnim("snow"));
                     c->addTween(Actor::TweenAlpha(0), 300)->setDetachActor(true);
-                    Vector2 pos = convert_local2global(a, content, contact);
+                    Vector2 pos = convert_local2stage(a, contact, content);
                     c->setPosition(pos);
                     c->attachTo(contacts);
                 }
@@ -205,7 +209,7 @@ public:
             dragging->attachTo(ball->getParent());
             dragging->setColor(Color::Red);
             dragging->setAnchor(0, 0);
-            dragging->setInputEnabled(false);
+            dragging->setTouchEnabled(false);
             drag.start(touchedBy, dragging.get(), dragging->getSize() / 2);
         }
     }

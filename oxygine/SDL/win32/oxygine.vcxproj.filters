@@ -21,7 +21,7 @@
     </Filter>
     <Filter Include="src\winnie_alloc">
       <UniqueIdentifier>{fa541539-b6e5-433e-b100-978d94de0a0d}</UniqueIdentifier>
-    </Filter>    
+    </Filter>
     <Filter Include="src\res">
       <UniqueIdentifier>{18bec777-8592-44da-9495-72a4cdb72f88}</UniqueIdentifier>
     </Filter>
@@ -65,7 +65,7 @@
     </ClCompile>
     <ClCompile Include="..\..\src\winnie_alloc\winnie_alloc.cpp">
       <Filter>src\winnie_alloc</Filter>
-    </ClCompile>    
+    </ClCompile>
     <ClCompile Include="..\..\src\res\ResAnim.cpp">
       <Filter>src\res</Filter>
     </ClCompile>
@@ -240,9 +240,6 @@
     <ClCompile Include="..\..\src\MemoryTexture.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Multithreading.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\PointerState.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -269,9 +266,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\core\gl\ShaderProgramGL.cpp">
       <Filter>src\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\ThreadMessages.cpp">
-      <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\InputText.cpp">
       <Filter>src</Filter>
@@ -330,11 +324,26 @@
     <ClCompile Include="..\..\src\TweenAlphaFade.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\TweenGlow.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Material.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\res\ResAtlasGeneric.cpp">
+      <Filter>src\res</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\res\ResAtlasPrebuilt.cpp">
+      <Filter>src\res</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ThreadLoader.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\PostProcess.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\TweenOutline.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\ThreadDispatcher.cpp">
+      <Filter>src\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -391,7 +400,7 @@
     </ClInclude>
     <ClInclude Include="..\..\src\winnie_alloc\winnie_alloc_config.h">
       <Filter>src\winnie_alloc</Filter>
-    </ClInclude>    
+    </ClInclude>
     <ClInclude Include="..\..\src\res\CreateResourceContext.h">
       <Filter>src\res</Filter>
     </ClInclude>
@@ -596,9 +605,6 @@
     <ClInclude Include="..\..\src\MemoryTexture.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\Multithreading.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\oxygine-framework.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -615,9 +621,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Sprite.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\TextActor.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\TextStyle.h">
@@ -640,9 +643,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\core\gl\ShaderProgramGL.h">
       <Filter>src\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\ThreadMessages.h">
-      <Filter>src\core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\InputText.h">
       <Filter>src</Filter>
@@ -719,11 +719,29 @@
     <ClInclude Include="..\..\src\TweenAlphaFade.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\TweenGlow.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\Material.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\res\ResAtlasGeneric.h">
+      <Filter>src\res</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\res\ResAtlasPrebuilt.h">
+      <Filter>src\res</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ThreadLoader.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\math\OBBox.h">
+      <Filter>src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\PostProcess.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\TweenOutline.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\core\ThreadDispatcher.h">
+      <Filter>src\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

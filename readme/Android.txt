@@ -1,11 +1,17 @@
 1. Start from readme.txt
+
+step by step video tutorial:
+http://www.youtube.com/watch?v=d8eHHr_KHgQ
+
 2a. Examples folder have configured android project
 =================================================================================================
 How to build. Steps:
-- Install Android NDK (https://developer.android.com/tools/sdk/ndk/index.html) and set it up
-- Install Android SDK (https://developer.android.com/sdk/index.html) - version 16
-- Install apache-ant (http://ant.apache.org/bindownload.cgi)
 - Install JDK version 6/7
+- Install Android NDK (https://developer.android.com/tools/sdk/ndk/index.html) and set it up
+- Install Android SDK Tools (https://developer.android.com/intl/ru/sdk/index.html#Other), 
+  Launch SDK Manager and install Android SDK v16
+- Install apache-ant (http://ant.apache.org/bindownload.cgi)
+
 - Configure environment variables properly:
   NDK_ROOT points to root NDK folder 
   	example: d:\android\android-ndk-r9c\

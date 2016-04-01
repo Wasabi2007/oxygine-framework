@@ -1,9 +1,32 @@
 #pragma once
 #include "test.h"
-#include "Multithreading.h"
+#include "ThreadLoader.h"
+#include "pthread.h"
+#include "core/oxygine.h"
+
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
 #endif
+
+
+void* myThreadFunc(void* t)
+{
+    Test* test = (Test*)t;
+    resources.load();
+
+#ifndef __S3E__
+
+    //sync with game thread and show notification
+    core::getMainThreadDispatcher().postCallback([ = ]()
+    {
+        test->notify("loaded");
+    });
+
+#endif
+
+    return 0;
+}
+
 
 class ManageResTest: public Test
 {
@@ -12,16 +35,20 @@ public:
     {
         toggle sw[] = {toggle("unload resources", 1), toggle("load resources", 0)};
         addToggle("switch", sw, 2);
+
 #ifdef EMSCRIPTEN
 #else
-        addButton("mt", "Multithreading loading");
-        addButton("mt_slow", "MT loading (slow demo)");
+        addButton("mt1", "load using ThreadLoader");
+        addButton("mt2", "load from own thread");
 #endif
 
 
-        for (int i = 0; i < resources.getCount(); ++i)
+        Resources::resources items;
+        resources.collect(items);
+
+        for (size_t i = 0; i < items.size(); ++i)
         {
-            ResAnim* ra = dynamic_cast<ResAnim*>(resources.get(i));
+            ResAnim* ra = dynamic_cast<ResAnim*>(items[i].get());
             if (!ra)
                 continue;
             if (ra->getName().find("_") != string::npos)
@@ -37,10 +64,6 @@ public:
             {
                 sprite->setPosition(0, 0);
                 sprite->setPriority(-1);
-            }
-            else
-            {
-                //sprite->addEventHandler(new DragHandler);
             }
         }
 
@@ -79,30 +102,43 @@ public:
         }
     }
 
+    spSprite createLoadingAnimation()
+    {
+        spSprite sp = new Sprite;
+        sp->setName("loading");
+        sp->setResAnim(resourcesUI.getResAnim("loading"));
+        sp->attachTo(ui);
+        sp->setAnchor(0.5f, 0.5f);
+        sp->setPosition(getSize() - sp->getSize() / 4);
+        sp->setScale(0.5f);
+        sp->addTween(Actor::TweenRotation(-(float)MATH_PI * 2), 1500, -1);
+
+        return sp;
+    }
+
     void clicked(string id)
     {
-        if (id == "mt" || id == "mt_slow")
+        if (id == "mt1")
         {
             resources.unload();
 
-            spSprite sp = new Sprite;
-            sp->setName("loading");
-            sp->setResAnim(resourcesUI.getResAnim("loading"));
-            sp->attachTo(ui);
-            sp->setAnchor(Vector2(0.5f, 0.5f));
-            sp->setPosition(getSize() - sp->getSize() / 4);
-            sp->setScale(0.5f);
-            sp->addTween(Actor::TweenRotation(-(float)MATH_PI * 2), 1500, -1);
+            createLoadingAnimation();
 
-            spThreadLoading l = new ThreadLoading;
-            l->addEventListener(ThreadLoading::COMPLETE, CLOSURE(this, &ManageResTest::_loaded));
+            spThreadLoader loading = new ThreadLoader;
 
-            addRef();//protect Test instance from automatic delete if you close it to fast
+            loading->addEventListener(ThreadLoader::COMPLETE, CLOSURE(this, &ManageResTest::_loaded));
+            addRef();//protect Test instance from automatic delete if you close it too fast
 
-            l->add(&resources);
-            if (id == "mt_slow")
-                l->setUpdateSize(128);
-            l->start(getStage());
+            loading->add(&resources);
+            loading->start();
+        }
+
+        if (id == "mt2")
+        {
+            resources.unload();
+
+            pthread_t thread;
+            pthread_create(&thread, 0, myThreadFunc, this);
         }
     }
 };

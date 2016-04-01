@@ -112,7 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/Counter.cpp" />
-    <ClCompile Include="../src/entry_point.cpp" />
+    <ClCompile Include="../src/main.cpp" />
     <ClCompile Include="../src/example.cpp" />
     <ClCompile Include="../src/test.cpp" />
   </ItemGroup>
@@ -145,8 +145,7 @@
     <ClInclude Include="../src/example.h" />
     <ClInclude Include="../src/test.h" />
     <ClInclude Include="..\src\TestEdges.h" />
-    <ClInclude Include="..\src\TestTweenAlphaFade.h" />
-    <ClInclude Include="..\src\TestTweenGlow.h" />
+    <ClInclude Include="..\src\TestTweenPostProcessing.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

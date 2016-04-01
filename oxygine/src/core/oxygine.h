@@ -1,5 +1,6 @@
 #pragma once
 #include "oxygine_include.h"
+#include "../EventDispatcher.h"
 #include "math/Vector2.h"
 #include <string>
 
@@ -14,7 +15,7 @@ typedef int window;
 /**main oxygine namespace*/
 namespace oxygine
 {
-    class ThreadMessages;
+    class ThreadDispatcher;
 
     void* fastAlloc(size_t size);
     void fastFree(void* data);
@@ -101,15 +102,28 @@ namespace oxygine
         /** Returns display size in pixels*/
         Point getDisplaySize();
 
-        ThreadMessages& getMainThreadMessages();
-        ThreadMessages& getUiThreadMessages();
+        ThreadDispatcher& getMainThreadDispatcher();
+        ThreadDispatcher& getUiThreadMessages();
+
+        OXYGINE_DEPRECATED
+        inline ThreadDispatcher& getMainThreadMessages() {return getMainThreadDispatcher();}
 
         bool isActive();
         bool hasFocus();
+
 
 #ifdef OXYGINE_SDL
         SDL_GLContext   getGLContext();
         SDL_Window*     getWindow();
 #endif
+
+        enum
+        {
+            EVENT_SYSTEM = sysEventID('c', 'S', 'y'), //events from SDL
+            EVENT_PRECREATEWINDOW = sysEventID('c', 'P', 'W'),//dispatched before creating window/context
+            EVENT_EXIT = sysEventID('c', 'E', 'x'), //dispatched from core::release
+        };
+
+        spEventDispatcher getDispatcher();
     }
 }

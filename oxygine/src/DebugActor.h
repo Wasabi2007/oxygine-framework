@@ -22,7 +22,10 @@ namespace oxygine
         static Resources* resSystem;
         static void initialize();
         static void show();
+        static void hide();
         static void release();
+        static void setCorner(int corner);
+        static void addDebugString(const char* format, ...);
         static std::string getDefaultName() { return "debug_actor"; }
 
         DebugActor();
@@ -31,7 +34,6 @@ namespace oxygine
         /**where to display DebugActor. 0 - top left, 1 - top right, 2 - bottom right, 3 - bottom left corner*/
         void setCornerPosition(int corner);
         //void addDebugString(const string &str);
-        static void addDebugString(const char* format, ...);
 
         /**function for debug. Helps you to find actor who handled TouchEvent*/
         void showTouchedActor(bool show);

@@ -17,6 +17,8 @@ public:
         addButton("ease", "ease: Linear");
         addButton("TweenAnim", "Add TweenAnim");
         addButton("TweenRotation", "Add TweenRotation");
+        addButton("TweenRotationGlobalEase", "Add TweenRotation with GlobalEase");
+
         addButton("TweenScale", "Add TweenScale");
         addButton("TweenPosition", "Add TweenPosition");
         addButton("TweenColor", "Add TweenColor");
@@ -105,14 +107,25 @@ public:
         }
 
         int dur = 2000;
+
         if (id == "TweenAnim")
         {
             _addTween(createTween(TweenAnim(resources.getResAnim("anim")), dur / 4, 10));
         }
+
         if (id == "TweenRotation")
         {
             _addTween(createTween(Actor::TweenRotation(_sprite->getRotation() + (float)MATH_PI * 2), dur, 1));
         }
+
+        if (id == "TweenRotationGlobalEase")
+        {
+            spTween tween = _sprite->addTween(
+                                Actor::TweenRotation(_sprite->getRotation() + (float)MATH_PI * 2),
+                                TweenOptions(500).loops(10).globalEase(_ease));
+            tween->addEventListener(TweenEvent::DONE, CLOSURE(this, &TweensTest::tweenDone));
+        }
+
         if (id == "TweenPosition")
         {
             _addTween(createTween(Actor::TweenPosition(_sprite->getPosition() + Vector2(0, -200)), dur, 1, true));
@@ -151,15 +164,6 @@ public:
         if (id == "complete")
         {
             _sprite->removeTweens(true);
-            /*
-            spTween t = _sprite->getFirstTween();
-            while(t)
-            {
-                spTween next = t->getNextSibling();
-                t->complete();//removes self from actor
-                t = next;
-            }
-            */
         }
 
     }

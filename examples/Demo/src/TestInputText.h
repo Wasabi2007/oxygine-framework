@@ -12,8 +12,8 @@ public:
     TextWithBackground(const string& defText)
     {
         text = new TextField;
-        //text won't handle any touch event
-        text->setInputEnabled(false);
+        //Don't handle touch events on this Actor
+        text->setTouchEnabled(false);
 
         TextStyle style;
         style.color = Color::Black;

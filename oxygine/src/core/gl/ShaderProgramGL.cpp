@@ -8,7 +8,7 @@
 
 namespace oxygine
 {
-    ShaderProgramGL::ShaderProgramGL(): _program(0)
+    ShaderProgramGL::ShaderProgramGL(GLuint p) : _program(p)
     {
 
     }
@@ -18,12 +18,6 @@ namespace oxygine
         if (_program)
             oxglDeleteProgram(_program);
         CHECKGL();
-    }
-
-
-    void ShaderProgramGL::init(GLuint p)
-    {
-        _program = p;
     }
 
     unsigned int ShaderProgramGL::getID() const
@@ -39,31 +33,26 @@ namespace oxygine
         return i;
     }
 
-    void printShaderInfoLog(GLuint shader)
+    bool ShaderProgramGL::getShaderBuildLog(GLuint shader, std::string& str)
     {
         GLint length = 0;
+        GLint success = GL_TRUE;
         oxglGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
         if (length)
         {
-            GLint success;
-            oxglGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if (success != GL_TRUE)
-            {
-
-                std::vector<char> bf;
-                bf.resize(length);
-                oxglGetShaderInfoLog(shader, (int)bf.size(), NULL, &bf.front());
-
-                log::messageln("shader build error: %s", &bf.front());
-                OX_ASSERT(!"shader build error");
-                exit(1);
-            }
+            str.resize(length);
+            oxglGetShaderInfoLog(shader, (int)str.size(), NULL, &str[0]);
         }
+        else
+            str.clear();
 
-        CHECKGL();
+        GLint status = GL_TRUE;
+        oxglGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+
+        return status == GL_TRUE;
     }
 
-    unsigned int ShaderProgramGL::createShader(unsigned int type, const char* data, const char* prepend, const char* append)
+    unsigned int ShaderProgramGL::createShader(unsigned int type, const char* data, const char* prepend, const char* append, error_policy ep)
     {
         GLuint shader = oxglCreateShader(type);
 
@@ -86,7 +75,7 @@ namespace oxygine
 #ifndef   EMSCRIPTEN
         if (!gles)
         {
-            log::messageln("not gles version");
+            //log::messageln("not gles version");
 
             static const char nonGLES[] =
                 "#define lowp\n"
@@ -94,7 +83,7 @@ namespace oxygine
                 "#define highp\n";
 
             *ptr = nonGLES;
-			ptr++;
+            ptr++;
         }
 #endif
 
@@ -117,9 +106,18 @@ namespace oxygine
         int num = (int)(ptr - sources);
         oxglShaderSource(shader, num, sources, 0);
         oxglCompileShader(shader);
-        printShaderInfoLog(shader);
 
-        CHECKGL();
+        std::string log;
+        bool success = getShaderBuildLog(shader, log);
+
+        if (success)
+        {
+            log::messageln("compiled shader: %s", log.c_str());
+        }
+        else
+        {
+            handleErrorPolicy(ep, "can't compile shader: %s", log.c_str());
+        }
 
         return shader;
     }
