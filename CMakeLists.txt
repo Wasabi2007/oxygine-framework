@@ -125,18 +125,18 @@ set(OXYGINE_INCLUDE_DIRS
 	${THIRD_PARTY}/zlib)
 
 
-option(userLibs "Use Libaray in /libs" ON)
+#option(userLibs "Use Libaray in /libs" ON)
 
-if(userLibs)
-set(OXYGINE_LIBRARY_DIRS
-	${OXYGINE_LIBRARY_DIRS}
-	${OXYGINE_SOURCE_DIR}/libs
-	${THIRD_PARTY}/libraries)
-else()
+#if(userLibs)
+#set(OXYGINE_LIBRARY_DIRS
+#	${OXYGINE_LIBRARY_DIRS}
+#	${OXYGINE_SOURCE_DIR}/libs
+#	${THIRD_PARTY}/libraries)
+#else()
 	set(OXYGINE_LIBRARY_DIRS
 			${OXYGINE_LIBRARY_DIRS}
 			${THIRD_PARTY}/libraries)
-endif()
+#endif()
 
 
 if (FORCE_GLES)
