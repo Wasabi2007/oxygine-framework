@@ -25,7 +25,9 @@
 #include "TestTweenShine.h"
 #include "TestTouches.h"
 #include "TestColorFont.h"
+#include "TestSignedDistanceFont.h"
 #include "TestTweenPostProcessing.h"
+#include "TestEdges.h"
 
 #ifdef __S3E__
 #include "s3eKeyboard.h"
@@ -72,9 +74,10 @@ public:
         addButton("sliding", "Sliding Actor");
         addButton("box9sprite", "Box9 Sprite");
         addButton("cliprect", "ClipRect Actor");
-        addButton("usershader", "User Shader");
-        addButton("usershader2", "User Shader2");
+        addButton("usershader", "Extended UberShader");
+        addButton("usershader2", "Custom shaders and render");
         addButton("multicolorfont", "Outer Font Color");
+        addButton("sdf", "Signed Distance Font");
         addButton("mask", "Mask");
         addButton("polygon", "Polygon");
         addButton("inputtext", "Input Text");
@@ -130,7 +133,9 @@ public:
         if (id == "tweentext") showTest(new TestTweenText);
         if (id == "tweenshine") showTest(new TestTweenShine);
         if (id == "multicolorfont") showTest(new TestColorFont);
+        if (id == "sdf") showTest(new TestSignedDistanceFont);
         if (id == "tweenpp") showTest(new TestTweenPostProcessing);
+        if (id == "edges") showTest(new TestEdges);
         if (id == "openbrowser")
         {
             core::execute("http://oxygine.org/");

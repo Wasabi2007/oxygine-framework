@@ -98,7 +98,11 @@ namespace oxygine
             int alpha = lerp(0, 255, _progress);
             //log::messageln("tween alpha %d", alpha);
 
-            Color c = _color.withAlpha(alpha).premultiplied();
+            Color c;
+            if (_pp._options._flags & PostProcessOptions::flag_singleR2T)
+                c = _color;
+            else
+                c = _color.withAlpha(alpha).premultiplied();
 
             driver->setShaderProgram(PostProcess::shaderBlurV);
             driver->setUniform("step", 1.0f / rt2->getHeight());

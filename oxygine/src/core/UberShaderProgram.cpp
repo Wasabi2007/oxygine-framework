@@ -64,8 +64,13 @@ namespace oxygine
                 strcat(prepend, "#define MASK_R_CHANNEL\n");
 
             if (flags & MASK)
-            {
                 strcat(prepend, "#define MASK\n");
+
+            if (flags & SDF)
+            {
+                strcat(prepend, "#define SDF\n");
+                if (flags & SDF_OUTLINE)
+                    strcat(prepend, "#define SDF_OUTLINE\n");
             }
 
             char* end = prepend + strlen(prepend);
@@ -117,7 +122,7 @@ namespace oxygine
 
     void UberShaderProgram::releaseShaders()
     {
-        for (int i = 0; i < SIZE; ++i)
+        for (int i = 0; i < _SIZE; ++i)
         {
             shader& s = _shaders[i];
             delete s.program;

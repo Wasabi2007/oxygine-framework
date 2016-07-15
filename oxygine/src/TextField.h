@@ -27,11 +27,14 @@ namespace oxygine
         /**Returns current text style*/
         const TextStyle&            getStyle() const {return _style;}
         /**Returns text bounds*/
-        const Rect&                 getTextRect();
+        const Rect&                 getTextRect() const;
         /**Returns current text*/
         const std::string&          getText() const { return _text; }
         const Font*                 getFont() const;
+        /**deprecated use getFontSize*/
+        OXYGINE_DEPRECATED
         int                         getFontSize2Scale() const;
+        int                         getFontSize() const;
         int                         getLinesOffset() const;
         int                         getKerning() const;
         TextStyle::VerticalAlign    getVAlign() const;
@@ -39,6 +42,12 @@ namespace oxygine
         bool                        getMultiline() const;
         bool                        getBreakLongWords() const;
         text::Symbol*               getSymbolAt(int pos) const;
+        const Color&                getOutlineColor() const;
+        float                       getOutline() const;
+        float                       getWeight() const;
+
+
+        bool getBounds(RectF&) const OVERRIDE;
 
         /**Overwrites TextStyle Vertical align*/
         void setVAlign(TextStyle::VerticalAlign align);
@@ -53,10 +62,21 @@ namespace oxygine
         void setLinesOffset(int offset);
         /**Overwrites TextStyle kerning*/
         void setKerning(int kerning);
-        /**Overwrites TextStyle scale2Size.*/
+        /**Overwrites TextStyle scale2Size. deprecated, use setFontSize*/
+        OXYGINE_DEPRECATED
         void setFontSize2Scale(int scale2size);
+        /**Overwrites TextStyle fontSize*/
+        void setFontSize(int size);
+
         /**Overwrites TextStyle font.*/
         void setFont(const Font* rs);
+
+        /**Overwrites TextStyle outlineColor. works only with SD font*/
+        void setOutlineColor(const Color&);
+        /**Overwrites TextStyle outline. works only with SD font*/
+        void setOutline(float v);
+        /**Overwrites TextStyle outline. works only with SD font*/
+        void setWeight(float w);
 
         void setStyle(const TextStyle& st);
         /**Changes text utf-8 string*/
@@ -73,6 +93,11 @@ namespace oxygine
 
         bool isOn(const Vector2& localPosition);
 
+
+        typedef Property<Color, const Color&, TextField, &TextField::getOutlineColor, &TextField::setOutlineColor>  TweenOutlineColor;
+
+
+    public:
 
         std::string dump(const dumpOptions& options) const;
         void doRender(RenderState const& parentRenderState);

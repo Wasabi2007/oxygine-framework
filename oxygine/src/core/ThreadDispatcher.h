@@ -66,6 +66,7 @@ namespace oxygine
         //blocking
         void get(message& ev);
 
+
         bool peek(peekMessage& ev, bool del);
         void clear();
 
@@ -84,6 +85,7 @@ namespace oxygine
         void post(int msgid, void* arg1, void* arg2);
         //async, sends post callback
         void postCallback(int msgid, void* arg1, void* arg2, callback cb, void* cbData);
+        void postCallback(void* arg1, void* arg2, callback cb, void* cbData);
 #ifndef __S3E__
         //async, sends post callback
         void postCallback(const std::function<void()>&);
@@ -97,9 +99,12 @@ namespace oxygine
         void _waitMessage();
         void _waitReply(int id);
 
+        void _runCallbacks();
+
         void _pushMessage(message&);
         void _pushMessageWaitReply(message&);
         void _popMessage(message&);
+        void _popMessageNoCB(message&);
         void _replyLast(void* val);
         unsigned int _id;
         void*   _result;

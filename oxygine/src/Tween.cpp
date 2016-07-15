@@ -50,6 +50,7 @@ namespace oxygine
 		_delay = opt._delay;
 		_detach = opt._detach;
 		_globalEase = opt._globalEase;
+		_cbDone = opt._callback;
 
 		if (_duration <= 0)
 		{
@@ -234,6 +235,8 @@ namespace oxygine
     }
 
 
+	Tween::easeHandler _customEaseHandler = 0;
+
     float Tween::calcEase(EASE ease, float t)
     {
         const float s = 1.70158f;
@@ -264,13 +267,19 @@ namespace oxygine
 				DEF_EASY_FROM_IN(Bounce, 1 - outBounce(1 - t));
 
 			default:
-				OX_ASSERT(!"unsupported ease");
+				t = _customEaseHandler(ease, t);
+				//OX_ASSERT(!"unsupported ease");
 				break;
 		}
 
 		#undef DEF_EASY_FROM_IN
 
 		return t;
+	}
+
+	void  Tween::setCustomEaseHandler(easeHandler h)
+	{
+		_customEaseHandler = h;
 	}
 
 

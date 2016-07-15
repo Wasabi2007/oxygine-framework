@@ -22,7 +22,7 @@ namespace oxygine
     public:
         enum
         {
-            DONE = sysEventID('T', 'W', 'D')
+            DONE = Event::COMPLETE,
         };
 
         TweenEvent(Tween* tween_, const UpdateState* us_) : Event(DONE, false), tween(tween_), us(us_) {}
@@ -148,6 +148,8 @@ namespace oxygine
         void update(Actor& actor, const UpdateState& us);
 
         static float calcEase(EASE ease, float v);
+        typedef float (*easeHandler)(EASE ease, float v);
+        static void  setCustomEaseHandler(easeHandler);
 
         /**set callback when tween done. Doesn't allocate memory. faster than addDoneCallback*/
         void setDoneCallback(const EventCallback& cb);

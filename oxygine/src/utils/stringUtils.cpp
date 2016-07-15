@@ -190,6 +190,13 @@ namespace oxygine
             *dest = 0;
         }
 
+        std::string normalize(const std::string& pth)
+        {
+            char path[512];
+            normalize(pth.c_str(), path);
+            return path;
+        }
+
         std::string extractFileName(const std::string& path)
         {
             size_t pos = path.find_last_of("\\/") + 1;
@@ -199,7 +206,7 @@ namespace oxygine
 
         std::string extractBaseFileName(const std::string& filename)
         {
-            size_t pos = filename.find_first_of('.');
+            size_t pos = filename.find_last_of('.');
             if (pos == std::string::npos)
                 pos = filename.size();
             std::string name = filename.substr(0, pos);
@@ -208,14 +215,22 @@ namespace oxygine
 
         std::string extractFileExt(const std::string& filename)
         {
-            size_t pos = filename.find_first_of(".");
+            size_t pos = filename.find_last_of(".");
             if (pos == std::string::npos)
                 return "";
             pos += 1;
             std::string name = filename.substr(pos, filename.size() - pos);
             return name;
         }
+
+        std::string extractFolder(const std::string& path)
+        {
+            size_t pos = path.find_last_of("\\/") + 1;
+            std::string name = path.substr(0, pos);
+            return name;
+        }
     }
+
 
     const char* getNextCode(int& code, const char* utf8str)
     {

@@ -27,12 +27,31 @@ namespace oxygine
 
 
     spNativeTexture STDRenderer::white;
-    std::vector<unsigned char> STDRenderer::indices8;
+    spNativeTexture STDRenderer::invisible;
+
     std::vector<unsigned short> STDRenderer::indices16;
     size_t STDRenderer::maxVertices = 0;
     UberShaderProgram STDRenderer::uberShader;
     std::vector<unsigned char> STDRenderer::uberShaderBody;
 
+
+
+    void nullTextureHook(const spNativeTexture&)
+    {
+    }
+
+    render_texture_hook _renderTextureHook = nullTextureHook;
+
+
+    render_texture_hook get_render_texture_hook()
+    {
+        return _renderTextureHook;
+    }
+
+    void set_render_texture_hook(render_texture_hook h)
+    {
+        _renderTextureHook = h;
+    }
 
     template<class V, class XY>
     void fillQuad(V* v, const RectF& uv, XY* positions, const Color& color)
@@ -77,21 +96,8 @@ namespace oxygine
 
     void STDRenderer::initialize()
     {
-        indices8.reserve(60 * 4);
-        for (int t = 0; t < 60; t += 1)
-        {
-            int i = t * 4;
-            indices8.push_back(i + 0);
-            indices8.push_back(i + 1);
-            indices8.push_back(i + 2);
-
-            indices8.push_back(i + 2);
-            indices8.push_back(i + 1);
-            indices8.push_back(i + 3);
-        }
-
-        indices16.reserve(12000 * 6);
-        for (int t = 0; t < 12000; t += 1)
+        indices16.reserve(3000 * 6);
+        for (int t = 0; t < 3000; t += 1)
         {
             int i = t * 4;
             indices16.push_back(i + 0);
@@ -123,13 +129,17 @@ namespace oxygine
 
     void STDRenderer::release()
     {
-        indices8.clear();
         indices16.clear();
         uberShader.release();
         uberShaderBody.clear();
         if (white)
             white->release();
         white = 0;
+
+        if (invisible)
+            invisible->release();
+        invisible = 0;
+
         delete instance;
         instance = 0;
     }
@@ -140,6 +150,11 @@ namespace oxygine
         if (white)
             white->release();
         white = 0;
+
+        if (invisible)
+            invisible->release();
+        invisible = 0;
+
         uberShader.release();
     }
 
@@ -161,6 +176,13 @@ namespace oxygine
         white->setName("!renderer. white");
         white->init(im, false);
         white->setLinearFilter(false);
+
+
+        memwhite.fill_zero();
+        invisible = IVideoDriver::instance->createTexture();
+        invisible->setName("!renderer. invisible");
+        invisible->init(im, false);
+        invisible->setLinearFilter(false);
 
         setDefaultSettings();
         _restored = true;
@@ -194,10 +216,7 @@ namespace oxygine
         size_t count = _vertices.size() / _vdecl->size;
         size_t indices = (count * 3) / 2;
 
-        if (indices <= indices8.size())
-            getDriver()->draw(IVideoDriver::PT_TRIANGLES, _vdecl, &_vertices.front(), (unsigned int)count, &indices8.front(), (unsigned int)indices, false);
-        else
-            getDriver()->draw(IVideoDriver::PT_TRIANGLES, _vdecl, &_vertices.front(), (unsigned int)count, &indices16.front(), (unsigned int)indices, true);
+        getDriver()->draw(IVideoDriver::PT_TRIANGLES, _vdecl, &_vertices.front(), (unsigned int)count, &indices16.front(), (unsigned int)indices);
 
         _vertices.clear();
     }
@@ -233,6 +252,11 @@ namespace oxygine
         Matrix::orthoLH(proj, (float)width, (float)height, 0, 1);
 
         setViewProjTransform(view, proj);
+    }
+
+    void STDRenderer::setViewProjTransform(const Matrix& viewProj)
+    {
+        _vp = viewProj;
     }
 
     void STDRenderer::setViewProjTransform(const Matrix& view, const Matrix& proj)
@@ -452,6 +476,9 @@ namespace oxygine
 
     void STDRenderer::setTexture(const spNativeTexture& base_, const spNativeTexture& alpha, bool basePremultiplied)
     {
+        _renderTextureHook(base_);
+        _renderTextureHook(alpha);
+
         spNativeTexture base = base_;
         if (base == 0 || base->getHandle() == 0)
             base = white;
@@ -533,6 +560,7 @@ namespace oxygine
         ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags)->program;
         setShader(prog);
 
+
         _uberShader->apply(_driver, _base, _alpha);
 
         UberShaderProgramBase::ShaderUniformsCallback cb = _uberShader->getShaderUniformsCallback();
@@ -579,6 +607,48 @@ namespace oxygine
         }
 
         _uberShader = pr;
+    }
+
+    void STDRenderer::beginSDFont(float contrast, float offset, const Color& outlineColor, float outlineOffset)
+    {
+        if (_alpha)
+        {
+            drawBatch();
+            _shaderFlags &= ~UberShaderProgram::SEPARATE_ALPHA;
+            _alpha = 0;
+        }
+
+        unsigned int shaderFlags = _shaderFlags;
+        shaderFlags |= UberShaderProgram::SDF;
+
+        if (outlineOffset < offset)
+            shaderFlags |= UberShaderProgram::SDF_OUTLINE;
+
+        if (_shaderFlags != shaderFlags)
+        {
+            drawBatch();
+        }
+
+        _shaderFlags = shaderFlags;
+
+        ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags)->program;
+        setShader(prog);
+
+        Vector4 c;
+        c = Vector4(outlineColor.getRedF(), outlineColor.getGreenF(), outlineColor.getBlueF(), outlineColor.getAlphaF());
+        _driver->setUniform("sdf_outline_color", &c, 1);
+
+        c = Vector4(offset, contrast, outlineOffset, contrast);
+        _driver->setUniform("sdf_params", &c, 1);
+    }
+
+    void STDRenderer::endSDFont()
+    {
+        drawBatch();
+        _shaderFlags &= ~(UberShaderProgram::SDF | UberShaderProgram::SDF_OUTLINE);
+
+        ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags)->program;
+        setShader(prog);
     }
 
     void STDRenderer::beginElementRendering(bool basePremultiplied)

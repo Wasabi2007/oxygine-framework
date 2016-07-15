@@ -138,14 +138,20 @@ namespace oxygine
         const Diffuse& df = frame.getDiffuse();
 
         const spNativeTexture& base = df.base;
+
+
 #ifdef EMSCRIPTEN
+        _renderer->setTexture(df.base, df.alpha, df.premultiplied);//preload
         if (base && base->getHandle())
 #else
         if (base)
 #endif
         {
             _renderer->setBlendMode(sprite->getBlendMode());
-            _renderer->setTexture(df.base, df.alpha, df.premultiplied);
+#ifndef EMSCRIPTEN
+            _renderer->setTexture(df.base, df.alpha, df.premultiplied);//preload
+#endif
+
             _renderer->setTransform(rs.transform);
             _renderer->draw(rs.getFinalColor(sprite->getColor()), frame.getSrcRect(), frame.getDestRect());
         }
@@ -165,13 +171,32 @@ namespace oxygine
 
         dc.primary = rs.getFinalColor(tf->getColor()).premultiplied();
         dc.color = tf->getStyle().color * dc.primary;
+        dc.renderer = _renderer;
 
         _renderer->setBlendMode(tf->getBlendMode());
         _renderer->setTransform(rs.transform);
-        _renderer->beginElementRendering(true);
-        dc.renderer = _renderer;
 
-        root->draw(dc);
+
+        if (tf->getFont()->isSDF())
+        {
+            float scale = sqrtf(rs.transform.a * rs.transform.a + rs.transform.c * rs.transform.c);
+
+            if (tf->getFontSize())
+                scale = scale * tf->getFontSize() / tf->getFont()->getSize();
+
+            float contrast = 3.0f + scale * 8.0f;
+            float offset = tf->getWeight();
+            float outline = tf->getWeight() - tf->getOutline();
+
+            _renderer->beginSDFont(contrast, offset, tf->getOutlineColor(), outline);
+            root->draw(dc);
+            _renderer->endSDFont();
+        }
+        else
+        {
+            _renderer->beginElementRendering(true);
+            root->draw(dc);
+        }
     }
 
     void STDMaterial::doRender(ColorRectSprite* sprite, const RenderState& rs)

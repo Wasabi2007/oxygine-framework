@@ -59,7 +59,9 @@ namespace oxygine
             SEPARATE_ALPHA = 1 << 1,
             MASK_R_CHANNEL = 1 << 2,
             MASK = 1 << 3,
-            SIZE = 1 << 4
+            SDF = 1 << 4,
+            SDF_OUTLINE = 1 << 1,//same as SEPARATE_ALPHA
+            _SIZE = 1 << 5
         };
 
         enum
@@ -76,6 +78,6 @@ namespace oxygine
 
     protected:
         void releaseShaders() OVERRIDE;
-        shader _shaders[SIZE];
+        shader _shaders[_SIZE];
     };
 }

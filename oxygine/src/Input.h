@@ -10,7 +10,7 @@ namespace oxygine
     class Actor;
     class EventState;
 
-    const int MAX_TOUCHES = 8;
+    const int MAX_TOUCHES = 17;
 
     class Input: public Object
     {
@@ -26,8 +26,8 @@ namespace oxygine
         PointerState* getTouchByIndex(int index);
 
 #ifndef __S3E__
-        int touchID2index(int id);
-        PointerState* getTouchByID(int id);
+        int touchID2index(int64 id);
+        PointerState* getTouchByID(int64 id);
 #endif
 
 
@@ -35,7 +35,7 @@ namespace oxygine
         PointerState _pointers[MAX_TOUCHES];
         PointerState _pointerMouse;
 
-        int _ids[MAX_TOUCHES + 1];
+        int64 _ids[MAX_TOUCHES + 1];
 
 
         void sendPointerButtonEvent(spStage, MouseButton button, float x, float y, float pressure, int type, PointerState*);

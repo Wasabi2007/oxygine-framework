@@ -62,7 +62,7 @@ namespace oxygine
         unsigned int read(handle, void* dest, unsigned int size);
 
         /**Reads bytes into destination buffer with stdio flags = "rb". Clears existing buffer*/
-        void read(const char* file, buffer& dest, error_policy ep = ep_show_error);
+        bool read(const char* file, buffer& dest, error_policy ep = ep_show_error);
 
         /**Reads bytes into destination buffer with stdio flags = "wb"*/
         unsigned int read(handle, buffer& dest);
@@ -76,6 +76,9 @@ namespace oxygine
 
         /**Is file exists?*/
         bool exists(const char* file);
+
+        /**returns opened file size*/
+        unsigned int size(handle);
 
         /**Deletes file*/
         bool deleteFile(const char* path, error_policy ep = ep_show_warning);
@@ -116,5 +119,13 @@ namespace oxygine
 
             handle _handle;
         };
+
+
+
+        /**you don't need to call "file::init" yourself. It would be called from core::init. Use it only when you need access to filesystem before core::init*/
+        void init(const char* company, const char* app);
+
+        /**for internal purposes*/
+        void free();
     }
 }

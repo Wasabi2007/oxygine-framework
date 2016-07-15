@@ -12,16 +12,25 @@ namespace oxygine
 
     void LoadResourcesContext::init()
     {
+#ifndef OX_NO_MT
         _mainThread = pthread_self();
+#endif
+    }
+
+    bool isMainThread()
+    {
+#ifdef OX_NO_MT
+        return true;
+#else
+        return pthread_equal(_mainThread, pthread_self()) != 0;
+#endif
     }
 
     LoadResourcesContext* LoadResourcesContext::get()
     {
-        bool isMainThread = pthread_equal(_mainThread, pthread_self()) != 0;
-
         LoadResourcesContext* mtcontext = &MTLoadingResourcesContext::instance;
         LoadResourcesContext* scontext = &SingleThreadResourcesContext::instance;
-        return isMainThread ? scontext : mtcontext;
+        return isMainThread() ? scontext : mtcontext;
     }
 
     CreateTextureTask::CreateTextureTask(): linearFilter(true), clamp2edge(true)
@@ -228,6 +237,7 @@ namespace oxygine
     void MTLoadingResourcesContext::createTexture(const CreateTextureTask& opt)
     {
         core::getMainThreadDispatcher().sendCallback(0, 0, copyTexture, (void*)&opt);
+        //core::getMainThreadDispatcher().postCallback(0, 0, 0, copyTexture, (void*)&opt);
     }
 
     bool MTLoadingResourcesContext::isNeedProceed(spNativeTexture t)

@@ -3,6 +3,7 @@
 #include "res/Resources.h"
 #include "res/Resource.h"
 #include "core/oxygine.h"
+#include "Stage.h"
 
 namespace oxygine
 {
@@ -12,8 +13,8 @@ namespace oxygine
 
     ThreadLoader::~ThreadLoader()
     {
-        //if (!pthread_equal(_thread, pthread_self()))
-        //  pthread_join(_thread, 0);
+        if (!pthread_equal(_thread, pthread_self()))
+            pthread_join(_thread, 0);
     }
 
 
@@ -26,6 +27,12 @@ namespace oxygine
     {
         _ress.push_back(res);
     }
+#ifndef __S3E__
+    void ThreadLoader::add(std::function< void() > v)
+    {
+        _funcs.push_back(v);
+    }
+#endif
 
     bool ThreadLoader::isCompleted()
     {
@@ -60,17 +67,16 @@ namespace oxygine
     }
 
 
-    void threadDone(const ThreadDispatcher::message& msg)
+    void ThreadLoader::threadDone(const ThreadDispatcher::message& msg)
     {
         ThreadLoader* tl = (ThreadLoader*)msg.cbData;
 
-        Event ev(ThreadLoader::COMPLETE, true);
-        tl->dispatchEvent(&ev);
-        tl->releaseRef();
+        tl->loaded(0);
     }
 
-    void ThreadLoader::_threadFunc()
+    void ThreadLoader::_load()
     {
+
         for (resources::iterator i = _resources.begin(); i != _resources.end(); ++i)
         {
             Resources* res = *i;
@@ -84,13 +90,42 @@ namespace oxygine
             res->load();
         }
 
+#ifndef __S3E__
+        for (funcs::iterator i = _funcs.begin(); i != _funcs.end(); ++i)
+        {
+            (*i)();
+        }
+#endif
+
+    }
+
+    void ThreadLoader::_threadFunc()
+    {
+        _load();
         core::getMainThreadDispatcher().postCallback(0, 0, 0, threadDone, this);
+    }
+
+    void ThreadLoader::loaded(Event*)
+    {
+        Event ev(ThreadLoader::COMPLETE, true);
+        dispatchEvent(&ev);
+        releaseRef();
     }
 
     void ThreadLoader::start()
     {
         _threadDone = false;
         addRef();
-        pthread_create(&_thread, 0, _staticThreadFunc, this);
+
+#ifdef OX_NO_MT
+        _load();
+        getStage()->addTween(TweenDummy(), 100)->addDoneCallback(CLOSURE(this, &ThreadLoader::loaded));
+#else
+
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+        pthread_create(&_thread, &attr, _staticThreadFunc, this);
+#endif
     }
 }

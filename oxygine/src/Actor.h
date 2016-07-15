@@ -65,14 +65,17 @@ namespace oxygine
         TweenOptions& ease(Tween::EASE ease) { _ease = ease; return *this; }
         TweenOptions& detach(bool detach_ = true) { _detach = detach_; return *this; }
         TweenOptions& globalEase(Tween::EASE ease) { _globalEase = ease; return *this; }
+        TweenOptions& doneCallback(const EventCallback& cb) { _callback = cb; return *this; }
 
-        timeMS  _duration;
-        timeMS  _delay;
-        Tween::EASE _ease;
-        Tween::EASE _globalEase;
-        int     _loops;
-        bool    _twoSides;
-        bool    _detach;
+
+        EventCallback   _callback;
+        timeMS          _duration;
+        timeMS          _delay;
+        Tween::EASE     _ease;
+        Tween::EASE     _globalEase;
+        int             _loops;
+        bool            _twoSides;
+        bool            _detach;
     };
 
     class Actor : public EventDispatcher, public intrusive_list_item<spActor>, public Serializable
@@ -215,6 +218,8 @@ namespace oxygine
         void setTouchEnabled(bool enabled) { _flags &= ~flag_touchEnabled; if (enabled) _flags |= flag_touchEnabled; }
         /**Enables/Disables Touch events for children of Actor.*/
         void setTouchChildrenEnabled(bool enabled) { _flags &= ~flag_touchChildrenEnabled; if (enabled) _flags |= flag_touchChildrenEnabled; }
+        /**setTouchEnabled + setTouchChildrenEnabled*/
+        void setTouchEnabled(bool enabled, bool childrenEnabled) { setTouchEnabled(enabled); setTouchChildrenEnabled(childrenEnabled); }
 
         /**Sets callback which would be called each Actor::update cycle before doUpdate. Use it if you don't want inherit from Actor and overload Actor::doUpdate.*/
         void setCallbackDoUpdate(UpdateCallback cb) {_cbDoUpdate = cb;}
@@ -223,13 +228,15 @@ namespace oxygine
 
         virtual bool isOn(const Vector2& localPosition);
         /**Returns true if actor is child or located deeper in current subtree*/
-        bool isDescendant(spActor actor);
+        bool isDescendant(const spActor& actor) const;
 
-        /**Inserts the specified actor before "where" actor as a child*/
-        void insertChildBefore(spActor actor, spActor where);
-        /**Inserts the specified actor after "where" actor as a child*/
-        void insertChildAfter(spActor actor, spActor where);
+        /**inserts sibling before 'this' actor*/
+        void insertSiblingBefore(spActor);
+        /**inserts sibling after 'this' actor*/
+        void insertSiblingAfter(spActor);
+        /**adds child first in list*/
         void prependChild(spActor actor);
+        /**adds child first in list*/
         void prependChild(Actor* actor);
         void addChild(spActor actor);
         void addChild(Actor* actor);//avoid conversion to spActor
@@ -285,6 +292,10 @@ namespace oxygine
         //converts local position to parent space
         Vector2 local2global(const Vector2& pos) const;
 
+        //converts local position to Stage
+        Vector2 local2stage(const Vector2& pos, Actor* stage = 0) const;
+        //converts global position (position in Stage space) to local space
+        Vector2 stage2local(const Vector2& pos, Actor* stage = 0) const;
 
         typedef Property2Args<float, Vector2, const Vector2&, Actor, &Actor::getPosition, &Actor::setPosition>  TweenPosition;
         typedef Property<float, float, Actor, &Actor::getX, &Actor::setX>                                       TweenX;
@@ -307,12 +318,15 @@ namespace oxygine
         /**Returns detailed actor information. Used for debug purposes. */
         virtual std::string dump(const dumpOptions& opt) const;
 
-        /**Returns Stage where Actor attached to. Use if for multi stage (window) mode*/
+        /**Returns Stage where Actor attached to. Used for multi stage (window) mode*/
         Stage*              _getStage();
 
         void setNotPressed();
 
         bool internalRender(RenderState& rs, const RenderState& parentRS);
+
+        /**recursively removes all event listeners and added tweens*/
+        void clean();
 
 
     protected:
@@ -332,6 +346,7 @@ namespace oxygine
         typedef intrusive_list<spActor> children;
         static void setParent(Actor* actor, Actor* parent);
         static children& getChildren(spActor& actor) { return actor->_children; }
+        static unsigned short& _getFlags(Actor* actor) { return actor->_flags; }
 
         void _onGlobalTouchUpEvent(Event*);
         void _onGlobalTouchMoveEvent(Event*);
@@ -368,7 +383,8 @@ namespace oxygine
             flag_touchChildrenEnabled   = 1 << 6,
             flag_cull                   = 1 << 7,
             flag_fastTransform          = 1 << 8,
-            flag_last                   = flag_fastTransform
+            flag_reserved               = 1 << 9,
+            flag_last                   = flag_reserved
         };
 
         mutable unsigned short _flags;
@@ -401,29 +417,18 @@ namespace oxygine
     Vector2 convert_stage2local(spActor child, const Vector2& pos, spActor root = 0);
     Vector2 convert_stage2local(const Actor* child, const Vector2& pos, const Actor* root = 0);
 
-    /**Deprecated*/
-    OXYGINE_DEPRECATED
-    inline Vector2 convert_local2root(spActor child, const Vector2& pos, spActor root = 0) { return convert_local2stage(child, pos, root); }
-    /**Deprecated*/
-    OXYGINE_DEPRECATED
-    inline Vector2 convert_root2local(spActor child, const Vector2& pos, spActor root = 0) { return convert_stage2local(child, pos, root); }
 
     /*Tests 2 actors intersection and returns contact point in space of object1.*/
     bool testIntersection(spActor obj1, spActor obj2, spActor commonParent = 0, Vector2* contact = 0);
 
 
-    //deprecated, use actor::computeGlobalTransform
-    OXYGINE_DEPRECATED
-    Transform getGlobalTransform(spActor child, spActor parent = 0);
-
-    //deprecated, use actor::computeGlobalTransform
-    OXYGINE_DEPRECATED
-    Transform getGlobalTransform2(spActor child, Actor* parent = 0);
-
     RectF getActorTransformedDestRect(Actor* actor, const Transform& tr);
 
-    void    changeParentAndSavePosition(spActor mutualParent, spActor actor, spActor newParent);
+    /**changes actor parent but with the same position on the screen*/
+    void    reattachActor(spActor actor, spActor newParent, spActor root = 0);
 
+    void decompose(const Transform& t, Vector2& pos, float& angle, Vector2& scale);
+    void setDecomposedTransform(spActor& a, const Transform& t);
 
     /** A TweenDummy class
      *  doing nothing, could be used for calling your callback after timeout

@@ -13,7 +13,7 @@
 namespace oxygine
 {
     Vector2 fitSize(const Vector2& destSize, const Vector2& src);
-    const Vector2 itemSize(128.0f, 128.0f);
+    const Vector2 itemSize(256.0f, 256.0f);
 
     class TextureLine: public Box9Sprite
     {
@@ -119,7 +119,29 @@ namespace oxygine
             content->addChild(line);
             ++n;
 
-            mem += t->getSizeVRAM();
+            if (t->getHandle())
+            {
+                TextureFormat fmt = t->getFormat();
+                int ram = t->getWidth() * t->getHeight();
+                if (isCompressedFormat(fmt))
+                {
+                    switch (fmt)
+                    {
+                        case TF_PVRTC_4RGBA:
+                            ram /= 2;
+                            break;
+                        case TF_ETC1:
+                            ram /= 2;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                    ram *= getBytesPerPixel(fmt);
+
+                mem += ram;
+            }
         }
 
         char txt[255];

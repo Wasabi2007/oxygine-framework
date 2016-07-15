@@ -205,6 +205,9 @@ namespace oxygine
         stream << " id='" << getObjectID() << "'";
         stream << "\n";
 
+        if (getUserData())
+            stream << " userData=" << (size_t)getUserData();
+
         if (!getVisible())
             stream << " invisible";
 
@@ -301,7 +304,7 @@ namespace oxygine
 
         TouchEvent up = *te;
         up.bubbles = false;
-        up.localPosition = convert_stage2local(this, te->localPosition, _getStage());
+        up.localPosition = stage2local(te->localPosition, _getStage());
         dispatchEvent(&up);
     }
 
@@ -320,7 +323,7 @@ namespace oxygine
         TouchEvent up = *te;
         up.type = TouchEvent::OUT;
         up.bubbles = false;
-        up.localPosition = convert_stage2local(this, te->localPosition, _getStage());
+        up.localPosition = stage2local(te->localPosition, _getStage());
         dispatchEvent(&up);
 
         updateStateOvered();
@@ -762,9 +765,9 @@ namespace oxygine
         return false;
     }
 
-    bool Actor::isDescendant(spActor actor)
+    bool Actor::isDescendant(const spActor& actor) const
     {
-        Actor* act = actor.get();
+        const Actor* act = actor.get();
         while (act)
         {
             if (act == this)
@@ -838,44 +841,30 @@ namespace oxygine
         }
     }
 
-    void Actor::insertChildAfter(spActor actor, spActor insertAfter)
+    void Actor::insertSiblingBefore(spActor actor)
     {
+        OX_ASSERT(actor != this);
         OX_ASSERT(actor);
-        if (!actor)
+        OX_ASSERT(_parent);
+        if (!_parent)
             return;
-
-        if (insertAfter)
-        {
-            OX_ASSERT(insertAfter->getParent() == this);
-        }
-
         actor->detach();
-
-        if (insertAfter)
-            _children.insert_after(actor, insertAfter);
-        else
-            _children.append(actor);
-        setParent(actor.get(), this);
+        spActor t = this;
+        _parent->_children.insert_before(actor, t);
+        setParent(actor.get(), _parent);
     }
 
-    void Actor::insertChildBefore(spActor actor, spActor insertBefore)
+    void Actor::insertSiblingAfter(spActor actor)
     {
+        OX_ASSERT(actor != this);
         OX_ASSERT(actor);
-        if (!actor)
+        OX_ASSERT(_parent);
+        if (!_parent)
             return;
-
-        if (insertBefore)
-        {
-            OX_ASSERT(insertBefore->getParent() == this);
-        }
-
         actor->detach();
-
-        if (insertBefore)
-            _children.insert_before(actor, insertBefore);
-        else
-            _children.prepend(actor);
-        setParent(actor.get(), this);
+        spActor t = this;
+        _parent->_children.insert_after(actor, t);
+        setParent(actor.get(), _parent);
     }
 
     void Actor::attachTo(spActor parent)
@@ -921,9 +910,13 @@ namespace oxygine
 
 
         if (sibling)
-            insertChildAfter(actor, sibling);
+            sibling->insertSiblingAfter(actor);
         else
-            insertChildBefore(actor, 0);
+        {
+            spActor t = actor;
+            _children.prepend(t);
+            setParent(actor, this);
+        }
     }
 
     void Actor::prependChild(spActor actor)
@@ -934,7 +927,7 @@ namespace oxygine
     void Actor::prependChild(Actor* actor)
     {
         if (getFirstChild())
-            insertChildBefore(actor, getFirstChild());
+            getFirstChild()->insertSiblingBefore(actor);
         else
             addChild(actor);
     }
@@ -1056,6 +1049,17 @@ namespace oxygine
         return t.transform(local);
     }
 
+    Vector2 Actor::local2stage(const Vector2& pos, Actor* stage) const
+    {
+        return convert_local2stage(this, pos, stage);
+    }
+
+    Vector2 Actor::stage2local(const Vector2& pos, Actor* stage) const
+    {
+        return convert_stage2local(this, pos, stage);
+    }
+
+
     bool Actor::prepareRender(RenderState& rs, const RenderState& parentRS)
     {
         if (!(_flags & flag_visible))
@@ -1106,6 +1110,19 @@ namespace oxygine
 
         completeRender(rs);
         return true;
+    }
+
+    void Actor::clean()
+    {
+        removeTweens();
+        removeAllEventListeners();
+
+        spActor child = getFirstChild();
+        while (child)
+        {
+            child->clean();
+            child = child->getNextSibling();
+        }
     }
 
     void Actor::render(const RenderState& parentRS)
@@ -1433,6 +1450,48 @@ namespace oxygine
             pos = convert_global2local(newParent, mutualParent, pos);
         actor->setPosition(pos);
         actor->attachTo(newParent);
+    }
+
+
+    void decompose(const Transform& t, Vector2& pos, float& angle, Vector2& scale)
+    {
+        scale.x = sqrtf(t.a * t.a + t.c * t.c);
+        scale.y = sqrtf(t.b * t.b + t.d * t.d);
+
+        angle = -atan2(t.c, t.a);
+        float an = angle / MATH_PI * 180;
+        pos.x = t.x;
+        pos.y = t.y;
+    }
+
+    void setDecomposedTransform(spActor& actor, const Transform& t)
+    {
+        Vector2 pos;
+        Vector2 scale;
+        float angle;
+
+        decompose(t, pos, angle, scale);
+        actor->setPosition(pos);
+        actor->setRotation(angle);
+        actor->setScale(scale);
+    }
+
+    void    reattachActor(spActor actor, spActor newParent, spActor root)
+    {
+        Transform t1 = actor->computeGlobalTransform(root.get());
+        Transform t2 = newParent->computeGlobalTransform(root.get());
+        t2.invert();
+        Transform r = t1 * t2;
+
+        Vector2 pos;
+        Vector2 scale;
+        float angle;
+
+        decompose(r, pos, angle, scale);
+        actor->attachTo(newParent);
+        actor->setPosition(pos);
+        actor->setRotation(angle);
+        actor->setScale(scale);
     }
 
 

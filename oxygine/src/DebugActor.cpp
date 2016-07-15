@@ -49,11 +49,12 @@ namespace oxygine
         if (resSystem)
             return;
 
-        spActor a = new MaskedSprite;
+        log::messageln("DebugActor::initialize");
 
         zp.setPrefix("system/");
         zp.add(system_data, system_size);
 
+        //file::ZipFileSystem zp;
         file::mount(&zp);
         resSystem = new Resources;
         resSystem->loadXML("system/res.xml", ResourcesLoadOptions().prebuiltFolder("system"));
@@ -62,6 +63,7 @@ namespace oxygine
     void DebugActor::show()
     {
         initialize();
+
         if (!DebugActor::instance)
             DebugActor::instance = new DebugActor;
 
@@ -196,7 +198,10 @@ namespace oxygine
         va_end(args);
 
         if (DebugActor::instance)
+        {
             DebugActor::instance->_debugText += buff;
+            DebugActor::instance->_debugText += "\n";
+        }
     }
 
     void DebugActor::_btnClicked(Event* ev)
@@ -421,7 +426,7 @@ namespace oxygine
     void DebugActor::onDAEvent(Event* ev)
     {
         TouchEvent* t = safeCast<TouchEvent*>(ev);
-        Vector2 loc = convert_stage2local(this, t->localPosition, _getStage());
+        Vector2 loc = stage2local(t->localPosition, _getStage());
         setAlpha(isOn(loc) ? 64 : 255);
     }
 

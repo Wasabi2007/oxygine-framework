@@ -93,7 +93,12 @@ namespace oxygine
 
     void TextField::setFontSize2Scale(int scale2size)
     {
-        _style.fontSize2Scale = scale2size;
+        setFontSize(scale2size);
+    }
+
+    void TextField::setFontSize(int size)
+    {
+        _style.fontSize = size;
         needRebuild();
     }
 
@@ -106,6 +111,21 @@ namespace oxygine
     {
         _style.font = font;
         needRebuild();
+    }
+
+    void TextField::setOutlineColor(const Color& c)
+    {
+        _style.outlineColor = c;
+    }
+
+    void TextField::setOutline(float v)
+    {
+        _style.outline = v;
+    }
+
+    void TextField::setWeight(float v)
+    {
+        _style.weight = v;
     }
 
     void TextField::setHAlign(TextStyle::HorizontalAlign align)
@@ -125,6 +145,7 @@ namespace oxygine
     {
         TextStyle::HorizontalAlign halign = _style.hAlign;
         TextStyle::VerticalAlign valign = _style.vAlign;
+        int size = _style.fontSize;
         _style = st;
 
         if (st.hAlign == TextStyle::HALIGN_DEFAULT)
@@ -132,6 +153,9 @@ namespace oxygine
 
         if (st.vAlign == TextStyle::VALIGN_DEFAULT)
             _style.vAlign = valign;
+
+        if (st.fontSize == 0)
+            _style.fontSize = size;
 
         needRebuild();
     }
@@ -173,7 +197,12 @@ namespace oxygine
 
     int TextField::getFontSize2Scale() const
     {
-        return _style.fontSize2Scale;
+        return _style.fontSize;
+    }
+
+    int            TextField::getFontSize() const
+    {
+        return _style.fontSize;
     }
 
     int TextField::getLinesOffset() const
@@ -206,16 +235,38 @@ namespace oxygine
         return _style.kerning;
     }
 
+    const Color& TextField::getOutlineColor() const
+    {
+        return _style.outlineColor;
+    }
+
+    float TextField::getOutline() const
+    {
+        return _style.outline;
+    }
+
+    float TextField::getWeight() const
+    {
+        return _style.weight;
+    }
+
     text::Symbol* TextField::getSymbolAt(int pos) const
     {
         return const_cast<TextField*>(this)->getRootNode()->getSymbol(pos);
     }
 
-    const Rect& TextField::getTextRect()
+    const Rect& TextField::getTextRect() const
     {
-        getRootNode();
+        const_cast<TextField*>(this)->getRootNode();
         return _textRect;
     }
+
+    bool TextField::getBounds(RectF& r) const
+    {
+        r = getTextRect().cast<RectF>();
+        return true;
+    }
+
 
     text::Node* TextField::getRootNode()
     {
@@ -302,8 +353,10 @@ namespace oxygine
             stream << " kerning=" << s.kerning;
         if (!onlydiff || def.linesOffset != s.linesOffset)
             stream << " linesOffset=" << s.linesOffset;
-        if (!onlydiff || def.fontSize2Scale != s.fontSize2Scale)
-            stream << " scale2size=" << s.fontSize2Scale;
+        if (!onlydiff || def.fontSize != s.fontSize)
+            stream << " fontSize=" << s.fontSize;
+        if (!onlydiff || def.outline != s.outline)
+            stream << " outline=" << s.outline;
         if (s.font)
         {
             stream << " font='" << s.font->getName() << "'";
@@ -356,7 +409,7 @@ namespace oxygine
 
         if (!_text.empty())
             node.append_attribute("text").set_value(_text.c_str());
-        setAttr(node, "fontsize2scale", _style.fontSize2Scale, def.fontSize2Scale);
+        setAttr(node, "fontsize2scale", _style.fontSize, def.fontSize);
         setAttr(node, "linesOffset", _style.linesOffset, def.linesOffset);
         setAttr(node, "kerning", _style.kerning, def.kerning);
         setAttr(node, "valign", _style.vAlign, def.vAlign);
@@ -379,7 +432,7 @@ namespace oxygine
         _style.hAlign = (TextStyle::HorizontalAlign)node.attribute("halign").as_int(def.hAlign);
         _style.multiline = node.attribute("multiline").as_bool(def.multiline);
         _style.breakLongWords = node.attribute("breakLongWords").as_bool(def.breakLongWords);
-        _style.fontSize2Scale = node.attribute("fontsize2scale").as_int(def.fontSize2Scale);
+        _style.fontSize = node.attribute("fontsize2scale").as_int(def.fontSize);
         _style.linesOffset = node.attribute("linesOffset").as_int(def.linesOffset);
         _style.kerning = node.attribute("kerning").as_int(def.kerning);
         const char* fnt = node.attribute("font").as_string(0);

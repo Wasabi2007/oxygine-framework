@@ -17,7 +17,7 @@ namespace oxygine
     class NativeTexture: public Texture, public Restorable
     {
     public:
-        NativeTexture(): _vram(0) {}
+        NativeTexture() {}
         virtual void init(nativeTextureHandle, int w, int h, TextureFormat tf) = 0;
         virtual void init(int w, int h, TextureFormat tf, bool renderTarget = false) = 0;
         virtual void init(const ImageData& src, bool sysMemCopy) = 0;
@@ -36,17 +36,12 @@ namespace oxygine
 
         /**returns handle (ptr) to HW texture ID*/
         virtual nativeTextureHandle getHandle() const = 0;
-        unsigned int                getSizeVRAM() const {return _vram;}
-
 
         //debug
         static void dumpCreatedTextures();
         static std::vector<spNativeTexture> getCreatedTextures();
         /**debug counter of created textures*/
         static volatile int created;
-
-    protected:
-        unsigned int _vram;
     };
 
     class NativeTextureNull: public NativeTexture
@@ -61,6 +56,7 @@ namespace oxygine
         void unlock();
         void swap(NativeTexture*);
 
+        void setClamp2Edge(bool clamp2edge);
         void setLinearFilter(bool enable);
         void updateRegion(int x, int y, const ImageData& data);
         void apply(const Rect* rect = 0);
@@ -70,5 +66,7 @@ namespace oxygine
         int getWidth() const;
         int getHeight() const;
         TextureFormat getFormat() const;
+
+        void* _getRestorableObject() { return 0; }
     };
 }

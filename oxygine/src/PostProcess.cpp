@@ -234,6 +234,11 @@ namespace oxygine
 
     void RenderTargetsManager::reset()
     {
+        for (size_t i = 0; i < _rts.size(); ++i)
+        {
+            _rts[i]->release();
+        }
+
         _free.clear();
         _rts.clear();
     }
@@ -343,14 +348,14 @@ namespace oxygine
     {
         _screen = getScreenRect(*actor);
 
-        OX_ASSERT(actor->_getStage());
+//        OX_ASSERT(actor->_getStage());
         _rt = getRTManager().get(_rt, _screen.getWidth(), _screen.getHeight(), _format);
 
 
         _transform = actor->computeGlobalTransform().inverted();
 
 
-
+        Material::setCurrent(0);
 
         IVideoDriver* driver = IVideoDriver::instance;
 
@@ -432,8 +437,8 @@ namespace oxygine
 
     void TweenPostProcess::done(Actor& actor)
     {
-		if (_actor->getMaterial())
-			_actor->setMaterial(_prevMaterial);
+        if (_actor->getMaterial())
+            _actor->setMaterial(_prevMaterial);
     }
 
 }

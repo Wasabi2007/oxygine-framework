@@ -26,10 +26,10 @@ namespace oxygine
 
         /**White 4x4 Texture*/
         static spNativeTexture white;
+        static spNativeTexture invisible;
+
         static UberShaderProgram uberShader;
         static std::vector<unsigned char> uberShaderBody;
-
-        static std::vector<unsigned char> indices8;
         static std::vector<unsigned short> indices16;
         static size_t maxVertices;
 
@@ -40,10 +40,12 @@ namespace oxygine
 
         const Matrix&   getViewProjection() const { return _vp; }
         IVideoDriver*   getDriver();
+        unsigned int    getShaderFlags() const { return _shaderFlags; }
 
 
         void setDriver(IVideoDriver*);
         void setViewProjTransform(const Matrix& view, const Matrix& proj);
+        void setViewProjTransform(const Matrix& viewProj);
         void setVertexDeclaration(const VertexDeclaration* decl);
         void setUberShaderProgram(UberShaderProgram* pr);
         /**Sets blend mode. Default value is blend_premultiplied_alpha*/
@@ -55,6 +57,8 @@ namespace oxygine
         void setTransform(const Transform& tr) { _transform = tr; }
 
         void beginElementRendering(bool basePremultiplied);// OVERRIDE;
+        void beginSDFont(float contrast, float offset, const Color& outlineColor, float outlineOffset);
+        void endSDFont();
         void drawElement(const spNativeTexture& texture, unsigned int color, const RectF& src, const RectF& dest) OVERRIDE;
         void draw(const Color&, const RectF& srcRect, const RectF& destRect);
         /**Draws existing batch immediately.*/
@@ -111,4 +115,9 @@ namespace oxygine
         UberShaderProgram* _uberShader;
         unsigned int _shaderFlags;
     };
+
+
+    typedef void(*render_texture_hook)(const spNativeTexture& nt);
+    void set_render_texture_hook(render_texture_hook);
+    render_texture_hook get_render_texture_hook();
 }

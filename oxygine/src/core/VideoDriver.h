@@ -69,12 +69,13 @@ namespace oxygine
         virtual void clear(const Color& color) = 0;
         virtual void begin(const Rect& viewport, const Color* color) = 0;
         virtual void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize) = 0;
-        virtual void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize, const void* indicesData, unsigned int numIndices, bool indicesShortType) = 0;
+        virtual void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize, const unsigned short* indicesData, unsigned int numIndices) = 0;
 
         virtual void            getStats(Stats& s) const = 0;
         virtual void            getViewport(Rect& r) const = 0;
         virtual bool            getScissorRect(Rect&) const = 0;
         virtual spNativeTexture getRenderTarget() const = 0;
+        virtual ShaderProgram*  getShaderProgram() const = 0;
         virtual const VertexDeclaration* getVertexDeclaration(bvertex_format) const = 0;
 
         virtual void setScissorRect(const Rect*) = 0;
@@ -110,12 +111,13 @@ namespace oxygine
         void getStats(Stats& s) const;
         void getViewport(Rect& r) const;
         bool getScissorRect(Rect&) const;
+        ShaderProgram*  getShaderProgram() const { return 0; }
         spNativeTexture getRenderTarget() const;
 
         const VertexDeclaration*    getVertexDeclaration(bvertex_format) const;
 
         void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize) {}
-        void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize, const void* indicesData, unsigned int indicesDataSize, bool indicesShortType) {}
+        void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize, const unsigned short* indicesData, unsigned int indicesDataSize) {}
 
 
         void setUniformInt(const char* id, int v) {}

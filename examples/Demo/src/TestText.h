@@ -134,7 +134,9 @@ public:
         style.hAlign = test.hAlign;
         style.font = resourcesUI.getResFont("big")->getFont();
         style.color = Color(0xffffffff);
-        style.fontSize2Scale = test.scale2size;
+        style.fontSize = test.scale2size;
+        if (!style.fontSize)
+            style.fontSize = style.font->getSize();
         text->setStyle(style);
 
         text->setSize(test.size);

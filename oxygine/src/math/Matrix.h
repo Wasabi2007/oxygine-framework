@@ -153,7 +153,7 @@ namespace oxygine
     template <class T>
     void MatrixT<T>::transpose()
     {
-        transpose(this, *this);
+        transpose(*this, *this);
     }
 
     template <class T>
@@ -259,9 +259,9 @@ namespace oxygine
                                             const vector3& Up)
     {
         vector3 x, y, z, temp;
-        vector3::normalize(&z, At - Eye);
-        vector3::normalize(&x, *vector3::cross(&temp, Up, z));
-        vector3::normalize(&y, *vector3::cross(&temp, z, x));
+        vector3::normalize(z, At - Eye);
+        vector3::normalize(x, vector3::cross(temp, Up, z));
+        vector3::normalize(y, vector3::cross(temp, z, x));
 
         out = matrix(
                   x.x, y.x, z.x, 0,
@@ -279,9 +279,9 @@ namespace oxygine
                                             const vector3& Up)
     {
         vector3 x, y, z, temp;
-        vector3::normalize(&z, Eye - At);
-        vector3::normalize(&x, *vector3::cross(&temp, Up, z));
-        vector3::normalize(&y, *vector3::cross(&temp, z, x));
+        vector3::normalize(z, Eye - At);
+        vector3::normalize(x, vector3::cross(temp, Up, z));
+        vector3::normalize(y, vector3::cross(temp, z, x));
 
         *out = matrix(
                    x.x, y.x, z.x, 0,
@@ -364,10 +364,10 @@ namespace oxygine
         float x = y / aspect;
 
         out = matrix(
-                  x, 0, 0, 0,
-                  0, y, 0, 0,
-                  0, 0, zFar / (zFar - zNear), 1,
-                  0, 0, -zFar * zNear / (zFar - zNear), 0);
+                  x, 0.0f, 0.0f, 0.0f,
+                  0.0f, y, 0.0f, 0.0f,
+                  0.0f, 0.0f, zFar / (zFar - zNear), 1.0f,
+                  0.0f, 0.0f, -zFar * zNear / (zFar - zNear), 0.0f);
         return out;
     }
 
@@ -377,11 +377,11 @@ namespace oxygine
         float y = T(1) / scalar::tan(T(0.5) * fovy);
         float x = y / aspect;
 
-        *out = matrix(
-                   x, 0, 0, 0,
-                   0, y, 0, 0,
-                   0, 0, zFar / (zFar - zNear), -1,
-                   0, 0, zFar * zNear / (zFar - zNear), 0);
+        out = matrix(
+                  x, 0.0f, 0.0f, 0.0f,
+                  0.0f, y, 0.0f, 0.0f,
+                  0.0f, 0.0f, zFar / (zFar - zNear), -1.0f,
+                  0.0f, 0.0f, zFar * zNear / (zFar - zNear), 0.0f);
         return out;
     }
 
@@ -416,7 +416,8 @@ namespace oxygine
 
         if (scalar::abs(det) < T(0.0001))
         {
-            return out.identity();
+            out.identity();
+            return out;
         }
 
         det = T(1) / (det);

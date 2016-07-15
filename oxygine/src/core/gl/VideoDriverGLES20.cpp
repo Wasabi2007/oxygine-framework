@@ -21,7 +21,7 @@
 
 namespace oxygine
 {
-    VideoDriverGLES20::VideoDriverGLES20(): _program(0)
+    VideoDriverGLES20::VideoDriverGLES20(): _programID(0), _p(0)
     {
     }
 
@@ -84,7 +84,8 @@ namespace oxygine
         ShaderProgramGL* prog = safeCast<ShaderProgramGL*>(prog_);
         unsigned int id = prog->getID();
         oxglUseProgram(id);
-        _program = id;
+        _programID = id;
+        _p = prog_;
         CHECKGL();
     }
 
@@ -132,7 +133,7 @@ namespace oxygine
         CHECKGL();
     }
 
-    void VideoDriverGLES20::draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl_, const void* vdata, unsigned int verticesDataSize, const void* indicesData, unsigned int numIndices, bool indicesShortType)
+    void VideoDriverGLES20::draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl_, const void* vdata, unsigned int verticesDataSize, const unsigned short* indicesData, unsigned int numIndices)
     {
         const VertexDeclarationGL* decl = static_cast<const VertexDeclarationGL*>(decl_);
 
@@ -146,7 +147,7 @@ namespace oxygine
             el++;
         }
 
-        glDrawElements(getPT(pt), numIndices, indicesShortType ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE, indicesData);
+        glDrawElements(getPT(pt), numIndices, GL_UNSIGNED_SHORT, indicesData);
 
         el = decl->elements;
         for (int i = 0; i < decl->numElements; ++i)
@@ -178,7 +179,7 @@ namespace oxygine
 
     void VideoDriverGLES20::setUniformInt(const char* id, int v)
     {
-        int location = oxglGetUniformLocation(_program, id);
+        int location = oxglGetUniformLocation(_programID, id);
         if (location == -1)
             return;
         oxglUniform1i(location, v);
@@ -187,7 +188,7 @@ namespace oxygine
 
     void VideoDriverGLES20::setUniform(const char* id, const Vector4* v, int num)
     {
-        int p = oxglGetUniformLocation(_program, id);
+        int p = oxglGetUniformLocation(_programID, id);
         if (p == -1)
             return;
         oxglUniform4fv(p, num, v->m);
@@ -196,7 +197,7 @@ namespace oxygine
 
     void VideoDriverGLES20::setUniform(const char* id, const Vector2* v, int num)
     {
-        int p = oxglGetUniformLocation(_program, id);
+        int p = oxglGetUniformLocation(_programID, id);
         if (p == -1)
             return;
         oxglUniform2fv(p, num, &v->x);
@@ -205,7 +206,7 @@ namespace oxygine
 
     void VideoDriverGLES20::setUniform(const char* id, const Vector3* v, int num)
     {
-        int p = oxglGetUniformLocation(_program, id);
+        int p = oxglGetUniformLocation(_programID, id);
         if (p == -1)
             return;
         oxglUniform3fv(p, num, &v->x);
@@ -214,7 +215,7 @@ namespace oxygine
 
     void VideoDriverGLES20::setUniform(const char* id, const Matrix* mat)
     {
-        int p = oxglGetUniformLocation(_program, id);
+        int p = oxglGetUniformLocation(_programID, id);
         if (p == -1)
             return;
         oxglUniformMatrix4fv(p, 1, GL_FALSE, mat->ml);
@@ -223,7 +224,7 @@ namespace oxygine
 
     void VideoDriverGLES20::setUniform(const char* id, float val)
     {
-        int p = oxglGetUniformLocation(_program, id);
+        int p = oxglGetUniformLocation(_programID, id);
         if (p == -1)
             return;
         oxglUniform1f(p, val);

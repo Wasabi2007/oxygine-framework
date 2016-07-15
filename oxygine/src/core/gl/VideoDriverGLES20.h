@@ -23,8 +23,10 @@ namespace oxygine
         void begin(const Rect& viewport, const Color* clearColor);
         void clear(const Color& color);
 
+        ShaderProgram*  getShaderProgram() const OVERRIDE { return _p; }
+
         void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize);
-        void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize, const void* indicesData, unsigned int indicesDataSize, bool indicesShortType);
+        void draw(PRIMITIVE_TYPE pt, const VertexDeclaration* decl, const void* verticesData, unsigned int verticesDataSize, const unsigned short* indicesData, unsigned int numIndices);
         void setDefaultSettings();
 
         void setViewport(const Rect& viewport);
@@ -41,7 +43,8 @@ namespace oxygine
         GLuint _vbo;
         GLuint _ibo;
 
-        int _program;
+        int _programID;
+        ShaderProgram* _p;
         void updateConstants();
     };
 }

@@ -6,7 +6,17 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-// Round everything to whole pixels during rendering.
+
+#if __APPLE__
+#include <TargetConditionals.h>
+#endif
+
+#if EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
+
+//Round everything to whole pixels during rendering.
 // Helps to avoid artifacts in pixel art games
 // when using textures with linearFilter="false"
 // and fractional sprite coordinates or sprite scaling.
@@ -25,6 +35,7 @@
 #   endif
 #elif EMSCRIPTEN
 #   define OXYGINE_EMSCRIPTEN 1
+#   define OXYGINE_SDL 1
 #   ifndef NDEBUG
 #       define OX_DEBUG 1
 #   endif // DEBUG  
@@ -75,7 +86,7 @@ namespace oxygine { namespace log { void error(const char* format, ...); } }
 //assert without log::error
 #ifdef OXYGINE_QT
 #   define OX_ASSERT_NL(x) {Q_ASSERT(x);}
-#elif EMSCRIPTEN
+#elif !OX_DEBUG || EMSCRIPTEN
 #   define OX_ASSERT_NL(x)
 #else
 #   define OX_ASSERT_NL(x) {assert(x);}
@@ -91,6 +102,8 @@ namespace oxygine { namespace log { void error(const char* format, ...); } }
 #define OXYGINE_HAS_RESTORE
 
 #define OXYGINE_RENDERER 4
+
+#define OXYGINE_VERSION 3
 
 #ifdef __GNUC__
 #   define OXYGINE_DEPRECATED __attribute__((deprecated))
