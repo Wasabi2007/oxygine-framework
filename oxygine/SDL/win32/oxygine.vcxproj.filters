@@ -348,6 +348,9 @@
     <ClCompile Include="..\..\src\TweenGlow.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\key.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\closure\closure.h">
@@ -629,9 +632,6 @@
     <ClInclude Include="..\..\src\TextStyle.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\Tweener.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\UpdateState.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -701,9 +701,6 @@
     <ClInclude Include="..\..\src\oxygine_include.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\RootActor.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\TweenAnim.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -747,6 +744,9 @@
       <Filter>src\core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\TweenGlow.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\key.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

@@ -184,7 +184,6 @@ namespace oxygine
         invisible->init(im, false);
         invisible->setLinearFilter(false);
 
-        setDefaultSettings();
         _restored = true;
     }
 
@@ -230,20 +229,6 @@ namespace oxygine
         }
     }
 
-    void STDRenderer::setDefaultSettings()
-    {
-        /*
-        _blend = blend_disabled;
-        IVideoDriver* instance = IVideoDriver::instance;
-        instance->setState(IVideoDriver::STATE_BLEND, 0);
-        */
-        /*
-
-        instance->setState(IVideoDriver::STATE_BLEND, 1);
-        instance->setBlendFunc(IVideoDriver::BT_ONE, IVideoDriver::BT_ONE);
-        */
-    }
-
     void STDRenderer::initCoordinateSystem(int width, int height, bool flipU)
     {
         Matrix view = makeViewMatrix(width, height, flipU);
@@ -251,7 +236,8 @@ namespace oxygine
         //initialize projection matrix
         Matrix::orthoLH(proj, (float)width, (float)height, 0, 1);
 
-        setViewProjTransform(view, proj);
+        Matrix vp = view * proj;
+        setViewProjTransform(vp);
     }
 
     void STDRenderer::setViewProjTransform(const Matrix& viewProj)
@@ -420,37 +406,15 @@ namespace oxygine
         {
             drawBatch();
 
-            switch (blend)
+            if (blend == 0)
             {
-                case blend_disabled:
-                    _driver->setState(IVideoDriver::STATE_BLEND, 0);
-                    break;
-                case blend_premultiplied_alpha:
-                    _driver->setBlendFunc(IVideoDriver::BT_ONE, IVideoDriver::BT_ONE_MINUS_SRC_ALPHA);
-                    break;
-                case blend_alpha:
-                    _driver->setBlendFunc(IVideoDriver::BT_SRC_ALPHA, IVideoDriver::BT_ONE_MINUS_SRC_ALPHA);
-                    break;
-                case blend_add:
-                    _driver->setBlendFunc(IVideoDriver::BT_ONE, IVideoDriver::BT_ONE);
-                    break;
-                case blend_multiply:
-                    _driver->setBlendFunc(IVideoDriver::BT_DST_COLOR, IVideoDriver::BT_ONE_MINUS_SRC_ALPHA);
-                    break;
-                case blend_inverse:
-                    _driver->setBlendFunc(IVideoDriver::BT_ONE_MINUS_DST_COLOR, IVideoDriver::BT_ZERO);
-                    break;
-
-                //case blend_sub:
-                //_driver->setBlendFunc(IVideoDriver::BT_ONE, IVideoDriver::BT_ONE);
-                //glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-                //  break;
-                default:
-                    OX_ASSERT(!"unknown blend");
+                _driver->setState(IVideoDriver::STATE_BLEND, 0);
             }
-
-            if (_blend == blend_disabled)
+            else
             {
+                IVideoDriver::BLEND_TYPE src  = static_cast<IVideoDriver::BLEND_TYPE>(blend >> 16);
+                IVideoDriver::BLEND_TYPE dest = static_cast<IVideoDriver::BLEND_TYPE>(blend & 0xFFFF);
+                _driver->setBlendFunc(src, dest);
                 _driver->setState(IVideoDriver::STATE_BLEND, 1);
             }
             _blend = blend;
@@ -557,7 +521,7 @@ namespace oxygine
 
     void STDRenderer::preDrawBatch()
     {
-        ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags)->program;
+        ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags);
         setShader(prog);
 
 
@@ -631,11 +595,10 @@ namespace oxygine
 
         _shaderFlags = shaderFlags;
 
-        ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags)->program;
+        ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags);
         setShader(prog);
 
-        Vector4 c;
-        c = Vector4(outlineColor.getRedF(), outlineColor.getGreenF(), outlineColor.getBlueF(), outlineColor.getAlphaF());
+        Vector4 c = outlineColor.toVector();
         _driver->setUniform("sdf_outline_color", &c, 1);
 
         c = Vector4(offset, contrast, outlineOffset, contrast);
@@ -647,7 +610,7 @@ namespace oxygine
         drawBatch();
         _shaderFlags &= ~(UberShaderProgram::SDF | UberShaderProgram::SDF_OUTLINE);
 
-        ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags)->program;
+        ShaderProgram* prog = _uberShader->getShaderProgram(_shaderFlags);
         setShader(prog);
     }
 

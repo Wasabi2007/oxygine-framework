@@ -45,6 +45,12 @@ namespace oxygine
         _setCacheEnabled(enabled);
     }
 
+    void HttpRequestTask::addHeader(const std::string& key, const std::string& value)
+    {
+        OX_ASSERT(!"not implemented");
+        _addHeader(key, value);
+    }
+
     const std::vector<unsigned char>&   HttpRequestTask::getPostData() const
     {
         return _postData;
@@ -71,7 +77,7 @@ namespace oxygine
         _response.clear();
         if (!_fname.empty())
         {
-            file::deleteFile(_fname.c_str(), ep_ignore_error);
+            file::deleteFile(_fname, ep_ignore_error);
         }
     }
 

@@ -23,6 +23,13 @@
 // Introduces some CPU overhead.
 //#define OXYGINE_NO_SUBPIXEL_RENDERING 1
 
+
+#ifdef __ANDROID__
+#define HAVE_NPOT_RT()  (false)
+#else
+#define HAVE_NPOT_RT()  (true)
+#endif
+
 //#define OXYGINE_NO_YEILD 1
 
 // Bypass SDL file functions and use plain fopen, fread etc.
@@ -103,7 +110,7 @@ namespace oxygine { namespace log { void error(const char* format, ...); } }
 
 #define OXYGINE_RENDERER 4
 
-#define OXYGINE_VERSION 3
+#define OXYGINE_VERSION 4
 
 #ifdef __GNUC__
 #   define OXYGINE_DEPRECATED __attribute__((deprecated))

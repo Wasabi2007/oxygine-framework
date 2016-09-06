@@ -5,6 +5,7 @@
 #include "res/CreateResourceContext.h"
 #include "res/Resources.h"
 
+
 #include "res/ResBuffer.h"
 #include "res/ResFontBM.h"
 #include "res/ResAtlas.h"
@@ -81,8 +82,6 @@ extern "C"
 
 namespace oxygine
 {
-    IVideoDriver::Stats _videoStats;
-
     static ThreadDispatcher _threadMessages;
     static ThreadDispatcher _uiMessages;
     Mutex mutexAlloc;
@@ -176,6 +175,11 @@ namespace oxygine
     }
 #endif
 
+    namespace key
+    {
+        void update();
+    }
+
     namespace core
     {
         void focusLost()
@@ -226,10 +230,14 @@ namespace oxygine
 
         void init2();
 
+        void init0()
+        {
+            if (!_dispatcher)
+                _dispatcher = new EventDispatcher;
+        }
+
         void init(init_desc* desc_ptr)
         {
-            Input::instance.__removeFromDebugList();
-
             std::string t;
 
 #ifdef OX_DEBUG
@@ -250,8 +258,7 @@ namespace oxygine
 
             log::messageln("build settings %s", t.c_str());
 
-            if (!_dispatcher)
-                _dispatcher = new EventDispatcher;
+            init0();
 
 
             log::messageln("initialize oxygine");
@@ -317,7 +324,7 @@ namespace oxygine
             }
 
             SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
-            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+            //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
             //SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -521,10 +528,16 @@ namespace oxygine
 
         bool  beginRendering(window w)
         {
+
 #ifdef OXYGINE_SDL
             SDL_Window* wnd = w;
             if (!wnd)
+            {
+                if (!focus)
+                    return false;
+
                 wnd = _window;
+            }
             SDL_GL_MakeCurrent(wnd, _context);
 #endif
 
@@ -533,6 +546,7 @@ namespace oxygine
             bool ready = STDRenderer::isReady();
             if (ready)
             {
+                IVideoDriver::_stats.start = getTimeMS();
                 updatePortProcessItems();
             }
 
@@ -563,12 +577,9 @@ namespace oxygine
                 SDL_GL_SwapWindow(wnd);
             }
 #endif
-
-            IVideoDriver::instance->getStats(_videoStats);
-            IVideoDriver::instance->swapped();
-
             CHECKGL();
 
+            IVideoDriver::_stats.duration = getTimeMS() - IVideoDriver::_stats.start;
             //sleep(1000/50);
         }
 
@@ -618,8 +629,8 @@ namespace oxygine
                             newFocus = true;
                         if (focus != newFocus)
                         {
-                            focus = newFocus;
 #if HANDLE_FOCUS_LOST
+                            focus = newFocus;
 
                             if (focus)
                                 focusAcquired();
@@ -710,6 +721,12 @@ namespace oxygine
 
         bool update()
         {
+            key::update();
+
+            timeMS duration = IVideoDriver::_stats.duration;
+            IVideoDriver::_stats = IVideoDriver::Stats();
+            IVideoDriver::_stats.duration = duration;
+
             ThreadDispatcher::peekMessage msg;
             while (_threadMessages.peek(msg, true)) {}
 
@@ -753,6 +770,9 @@ namespace oxygine
 
         void release()
         {
+            _threadMessages.clear();
+            _uiMessages.clear();
+
             clearPostProcessItems();
             PostProcess::freeShaders();
 
@@ -783,6 +803,8 @@ namespace oxygine
             Resources::unregisterResourceType("bmfc_font");
             Resources::unregisterResourceType("sdfont");
             Resources::unregisterResourceType("starling");
+
+
 
 #if OXYGINE_SDL
             SDL_GL_DeleteContext(_context);

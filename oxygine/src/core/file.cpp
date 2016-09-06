@@ -100,16 +100,17 @@ namespace oxygine
             _nfs.unmount(fs);
         }
 
-        handle open(const char* file_, const char* mode, error_policy ep)
+        handle open(const std::string& file_, const char* mode, error_policy ep)
         {
+
 #ifdef OX_DEBUG
             if (!strstr(mode, "b"))
-                log::warning("file::open for file '%s' should be called with 'b' (means binary) flag", file_);
+                log::warning("file::open for file '%s' should be called with 'b' (means binary) flag", file_.c_str());
 #endif
             //OX_ASSERT(_openedFiles == 0);
-            LOGD("open file: %s %s %d", file_, mode, _openedFiles);
+            LOGD("open file: %s %s", file_.c_str(), mode);
             char file[512];
-            path::normalize(file_, file);
+            path::normalize(file_.c_str(), file);
             LOGD("q1");
 
 
@@ -128,7 +129,7 @@ namespace oxygine
 
         void close(handle h)
         {
-            LOGD("close file %x", fh);
+            LOGD("close file %x", h);
             fileHandle* fh = (fileHandle*)h;
             fh->release();
         }
@@ -145,23 +146,24 @@ namespace oxygine
             return fh->tell();
         }
 
-        bool deleteFile(const char* path, error_policy ep)
+        bool deleteFile(const std::string& file, error_policy ep)
         {
-            bool ok = _nfs.deleteFile(path) == FileSystem::status_ok;
+            //std::string file = path::normalize(file_);
+            bool ok = _nfs.deleteFile(file.c_str()) == FileSystem::status_ok;
             if (!ok)
             {
-                handleErrorPolicy(ep, "can't delete file: %s", path);
+                handleErrorPolicy(ep, "can't delete file: %s", file.c_str());
             }
 
             return ok;
         }
 
-        bool rename(const char* src, const char* dest, error_policy ep)
+        bool rename(const std::string& src, const std::string& dest, error_policy ep)
         {
-            bool ok = _nfs.renameFile(src, dest) == FileSystem::status_ok;
+            bool ok = _nfs.renameFile(src.c_str(), dest.c_str()) == FileSystem::status_ok;
             if (!ok)
             {
-                handleErrorPolicy(ep, "can't rename file: %s to %s", src, dest);
+                handleErrorPolicy(ep, "can't rename file: %s to %s", src.c_str(), dest.c_str());
             }
 
             return ok;
@@ -171,16 +173,15 @@ namespace oxygine
         {
             fileHandle* fh = (fileHandle*)h;
             OX_ASSERT(fh && dest);
-            LOGD("read file %x %d", fh, destSize);
+            LOGD("read file1 %x %d", fh, destSize);
 
             return fh->read(dest, destSize);
         }
 
-        bool read(const char* file_, buffer& dest, error_policy ep)
+        bool read(const std::string& file_, buffer& dest, error_policy ep)
         {
-            LOGD("open file: %s %s %d", file_, mode, _openedFiles);
             char file[512];
-            path::normalize(file_, file);
+            path::normalize(file_.c_str(), file);
 
             dest.data.clear();
             bool ok = _nfs.read(file, dest, ep) == FileSystem::status_ok;
@@ -201,7 +202,7 @@ namespace oxygine
 
             dest.data.resize(size);
             unsigned int t = fh->read(&dest.data[0], size);
-            LOGD("read file %x %d", fh, t);
+            LOGD("read file2 %x %d", fh, t);
             return t;
         }
 
@@ -211,12 +212,12 @@ namespace oxygine
             fh->write(data, size);
         }
 
-        void write(const char* file, const buffer& data, error_policy ep)
+        void write(const std::string& file, const buffer& data, error_policy ep)
         {
             write(file, data.getData(), data.getSize(), ep);
         }
 
-        void write(const char* file, const void* data, unsigned int size, error_policy ep)
+        void write(const std::string& file, const void* data, unsigned int size, error_policy ep)
         {
             autoClose ac(open(file, "wb", ep));
             if (!ac.getHandle())
@@ -231,22 +232,22 @@ namespace oxygine
         }
 
 
-        bool exists(const char* file_)
+        bool exists(const std::string& file_)
         {
             char file[512];
-            path::normalize(file_, file);
+            path::normalize(file_.c_str(), file);
 
             return _nfs.isExists(file);
         }
 
-        bool makeDirectory(const char* path)
+        bool makeDirectory(const std::string& path)
         {
-            return _nfs.makeDirectory(path) == FileSystem::status_ok;
+            return _nfs.makeDirectory(path.c_str()) == FileSystem::status_ok;
         }
 
-        void deleteDirectory(const char* path)
+        void deleteDirectory(const std::string& path)
         {
-            _nfs.deleteDirectory(path);
+            _nfs.deleteDirectory(path.c_str());
         }
 
         file::STDFileSystem& fs()
